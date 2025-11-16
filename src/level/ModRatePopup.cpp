@@ -1,4 +1,3 @@
-
 #include "ModRatePopup.hpp"
 
 bool ModRatePopup::setup(std::string title, GJGameLevel *level)
@@ -150,6 +149,13 @@ bool ModRatePopup::setup(std::string title, GJGameLevel *level)
     m_difficultyContainer->addChild(m_difficultySprite);
     m_mainLayer->addChild(m_difficultyContainer);
 
+    // featured score textbox (invisible by default)
+    m_featuredScoreInput = geode::TextInput::create(100.f, "Score");
+    m_featuredScoreInput->setPosition({300.f, 30.f});
+    m_featuredScoreInput->setVisible(false);
+    m_featuredScoreInput->setID("featured-score-input");
+    m_mainLayer->addChild(m_featuredScoreInput);
+
     return true;
 }
 
@@ -177,6 +183,17 @@ void ModRatePopup::onSubmitButton(CCObject *sender)
     jsonBody["levelId"] = m_levelId;
     jsonBody["difficulty"] = m_selectedRating;
     jsonBody["featured"] = m_isFeatured ? 1 : 0;
+    
+    // add featured score if featured mode is enabled
+    if (m_isFeatured && m_featuredScoreInput)
+    {
+        auto scoreStr = m_featuredScoreInput->getString();
+        if (!scoreStr.empty())
+        {
+            int score = numFromString<int>(scoreStr).unwrapOr(0);
+            jsonBody["featuredScore"] = score;
+        }
+    }
 
     log::info("Sending request: {}", jsonBody.dump());
 
@@ -238,6 +255,11 @@ void ModRatePopup::onToggleFeatured(CCObject *sender)
         featuredCoin->setScale(1.2f);
         featuredCoin->setID("featured-coin");
         m_difficultyContainer->addChild(featuredCoin, -1);
+        m_featuredScoreInput->setVisible(true);
+    }
+    else
+    {
+        m_featuredScoreInput->setVisible(false);
     }
 }
 

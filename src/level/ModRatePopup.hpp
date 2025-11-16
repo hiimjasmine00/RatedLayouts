@@ -18,6 +18,7 @@ private:
     CCMenu* m_normalButtonsContainer;
     CCMenu* m_demonButtonsContainer;
     CCNode* m_difficultyContainer;
+    geode::TextInput* m_featuredScoreInput;
     int m_selectedRating;
     int m_levelId;
     bool setup(std::string title, GJGameLevel* level) override;
