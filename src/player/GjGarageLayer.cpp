@@ -1,0 +1,96 @@
+#include <Geode/Geode.hpp>
+#include <argon/argon.hpp>
+#include <capeling.garage-stats-menu/include/StatsDisplayAPI.h>
+#include <Geode/modify/GJGarageLayer.hpp>
+
+using namespace geode::prelude;
+
+class $modify(GJGarageLayer)
+{
+    struct Fields
+    {
+        CCNode *myStatItem = nullptr;
+    };
+
+    bool init()
+    {
+        if (!GJGarageLayer::init())
+            return false;
+
+        auto statMenu = this->getChildByID("capeling.garage-stats-menu/stats-menu");
+
+        auto myStatItem = StatsDisplayAPI::getNewItem("blueprint-stars"_spr,
+                                                      CCSprite::create("rlStarIcon.png"_spr),
+                                                      Mod::get()->getSavedValue<int>("stars"), 0.8f);
+
+        m_fields->myStatItem = myStatItem;
+
+        if (statMenu)
+        {
+            statMenu->addChild(myStatItem);
+            statMenu->updateLayout();
+        }
+        fetchProfileData(GJAccountManager::get()->m_accountID);
+
+        return true;
+    }
+
+    void fetchProfileData(int accountId)
+    {
+        log::info("Fetching profile data for account ID: {}", accountId);
+        // argon my beloved <3
+        std::string token;
+        auto res = argon::startAuth([](Result<std::string> res)
+                                    {
+        if (!res) {
+            log::warn("Auth failed: {}", res.unwrapErr());
+            return;
+        }
+        auto token = std::move(res).unwrap();
+        log::debug("token obtained: {}", token);
+        Mod::get()->setSavedValue("argon_token", token); }, [](argon::AuthProgress progress)
+                                    { log::debug("auth progress: {}", argon::authProgressToString(progress)); });
+        if (!res)
+        {
+            log::warn("Failed to start auth attempt: {}", res.unwrapErr());
+            return;
+        }
+
+        matjson::Value jsonBody = matjson::Value::object();
+        jsonBody["argonToken"] = Mod::get()->getSavedValue<std::string>("argon_token");
+        jsonBody["accountId"] = accountId;
+
+        // web request
+        auto postReq = web::WebRequest();
+        postReq.bodyJSON(jsonBody);
+        auto postTask = postReq.post("https://gdrate.arcticwoof.xyz/profile");
+
+        // Handle the response
+        postTask.listen([this](web::WebResponse *response)
+                        {
+                            log::info("Received response from server");
+
+                            if (!response->ok())
+                            {
+                                log::warn("Server returned non-ok status: {}", response->code());
+                                return;
+                            }
+
+                            auto jsonRes = response->json();
+                            if (!jsonRes)
+                            {
+                                log::warn("Failed to parse JSON response");
+                                return;
+                            }
+
+                            auto json = jsonRes.unwrap();
+
+                            int points = json["points"].asInt().unwrapOrDefault();
+                            int stars = json["stars"].asInt().unwrapOrDefault();
+
+                            log::info("Profile data - points: {}, stars: {}", points, stars);
+
+                            Mod::get()->setSavedValue("stars", stars);
+                            Mod::get()->setSavedValue("points", points); });
+    }
+};

@@ -10,5 +10,18 @@
 	"name": "Rated Layouts",
 	"version": "v1.0.0",
 	"developer": "ArcticWoof",
-	"description": "Play rated layout levels and earn blueprint stars"
+	"description": "Play rated classic layout levels",
+	"resources": {
+		"sprites": ["resources/*"]
+	},
+	"dependencies": {
+		"jouca.badgesapi": {
+			"importance": "recommended",
+			"version": ">=1.21.0"
+		},
+		"capeling.garage-stats-menu": {
+			"importance": "required",
+			"version": ">=1.0.1"
+		}
+	}
 }
