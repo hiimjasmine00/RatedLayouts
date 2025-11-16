@@ -22,25 +22,44 @@ class $modify(RLLevelSearchLayer, LevelSearchLayer)
 
         if (quickSearchMenu)
         {
-            auto buttonSprite = SearchButton::create("GJ_longBtn04_001.png", "Send Layouts", 0.5f, "GJ_sFollowedIcon_001.png");
+            auto buttonSprite = SearchButton::create("GJ_longBtn04_001.png", "Send LOs", 0.5f, "GJ_sFollowedIcon_001.png");
             auto tabButton = CCMenuItemSpriteExtra::create(
                 buttonSprite,
                 this,
                 menu_selector(RLLevelSearchLayer::onSuggestedLevelsButton));
             quickSearchMenu->addChild(tabButton);
 
-            auto ratedButtonSprite = SearchButton::create("GJ_longBtn04_001.png", "Rated Layouts", 0.5f, "GJ_sFollowedIcon_001.png");
+            auto ratedButtonSprite = SearchButton::create("GJ_longBtn04_001.png", "Rated LOs", 0.5f, "GJ_sFollowedIcon_001.png");
             auto ratedTabButton = CCMenuItemSpriteExtra::create(
                 ratedButtonSprite,
                 this,
                 menu_selector(RLLevelSearchLayer::onRatedLevelsButton));
             quickSearchMenu->addChild(ratedTabButton);
 
+            // hacky way to use custom icons (inspired by random tab snippet lol)
+            auto oldSprite = typeinfo_cast<CCSprite *>(buttonSprite->getChildren()->objectAtIndex(1));
+            if (oldSprite)
+            {
+                auto newSprite = CCSprite::create("rlStarIcon.png"_spr);
+                oldSprite->setVisible(false);
+                newSprite->setPosition(oldSprite->getPosition());
+                newSprite->setScale(0.8f);
+                buttonSprite->addChild(newSprite);
+            }
+            auto oldSprite2 = typeinfo_cast<CCSprite *>(ratedButtonSprite->getChildren()->objectAtIndex(1));
+            if (oldSprite2)
+            {
+                auto newSprite = CCSprite::create("rlStarIcon.png"_spr);
+                oldSprite2->setVisible(false);
+                newSprite->setPosition(oldSprite2->getPosition());
+                newSprite->setScale(0.8f);
+                ratedButtonSprite->addChild(newSprite);
+            }
+
             quickSearchMenu->updateLayout();
         }
         return true;
     }
-
 
     // these were absolute trash to do, legit had to go find snippets from other repos
     // just to get this working lol
