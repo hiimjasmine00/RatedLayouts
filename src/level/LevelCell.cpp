@@ -74,16 +74,16 @@ class $modify(LevelCell)
             case 10:
                 difficultyLevel = 7;
                 break;
-            case 11:
+            case 15:
                 difficultyLevel = 8;
                 break;
-            case 12:
+            case 20:
                 difficultyLevel = 6;
                 break;
-            case 13:
+            case 25:
                 difficultyLevel = 9;
                 break;
-            case 14:
+            case 30:
                 difficultyLevel = 10;
                 break;
             default:

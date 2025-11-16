@@ -14,7 +14,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
 
             // probs update the value of the stars the user has saved
             int savedStars = Mod::get()->getSavedValue<int>("stars");
-            
+
         int starRatings = level->m_stars;
         bool legitCompleted = level->m_isCompletionLegitimate;
         auto leftMenu = this->getChildByID("left-side-menu");
@@ -142,19 +142,19 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                 difficultyLevel = 7;
                 isDemon = true;
                 break;
-            case 11:
+            case 15:
                 difficultyLevel = 8;
                 isDemon = true;
                 break;
-            case 12:
+            case 20:
                 difficultyLevel = 6;
                 isDemon = true;
                 break;
-            case 13:
+            case 25:
                 difficultyLevel = 9;
                 isDemon = true;
                 break;
-            case 14:
+            case 30:
                 difficultyLevel = 10;
                 isDemon = true;
                 break;
@@ -296,19 +296,19 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                 difficultyLevel = 7;
                 isDemon = true;
                 break;
-            case 11:
+            case 15:
                 difficultyLevel = 8;
                 isDemon = true;
                 break;
-            case 12:
+            case 20:
                 difficultyLevel = 6;
                 isDemon = true;
                 break;
-            case 13:
+            case 25:
                 difficultyLevel = 9;
                 isDemon = true;
                 break;
-            case 14:
+            case 30:
                 difficultyLevel = 10;
                 isDemon = true;
                 break;
@@ -410,12 +410,16 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                 ->show();
             return;
         }
-        requestStatus(GJAccountManager::get()->m_accountID);
+
+        if (Mod::get()->getSavedValue<int>("role") != 1)
+        {
+            requestStatus(GJAccountManager::get()->m_accountID);
+        }
 
         if (Mod::get()->getSavedValue<int>("role") == 1)
         {
             log::info("Mod button clicked!");
-            auto popup = ModRatePopup::create("Mod: Rate Layout", this->m_level);
+            auto popup = ModRatePopup::create("Mod: Suggest Layout", this->m_level);
             popup->show();
         }
         else
@@ -437,7 +441,11 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                 ->show();
             return;
         }
-        requestStatus(GJAccountManager::get()->m_accountID);
+
+        if (Mod::get()->getSavedValue<int>("role") != 2)
+        {
+            requestStatus(GJAccountManager::get()->m_accountID);
+        }
 
         if (Mod::get()->getSavedValue<int>("role") == 2)
         {

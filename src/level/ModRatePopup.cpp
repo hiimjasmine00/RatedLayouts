@@ -30,12 +30,13 @@ bool ModRatePopup::setup(std::string title, GJGameLevel *level)
     m_demonButtonsContainer = CCMenu::create();
     m_demonButtonsContainer->setPosition({0, 0});
 
-    // first row: ratings 1-5
+    // demon buttons only (ratings 10, 15, 20, 25, 30)
     float startX = 50.f;
     float buttonSpacing = 55.f;
     float firstRowY = 110.f;
-
-    for (int i = 1; i <= 5; i++)
+    
+    // normal difficulty buttons (1-9)
+    for (int i = 1; i <= 9; i++)
     {
         auto buttonBg = CCSprite::create("GJ_button_04.png");
         auto buttonLabel = CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt");
@@ -49,53 +50,40 @@ bool ModRatePopup::setup(std::string title, GJGameLevel *level)
             this,
             menu_selector(ModRatePopup::onRatingButton));
 
-        ratingButtonItem->setPosition({startX + (i - 1) * buttonSpacing, firstRowY});
+        if (i <= 5)
+        {
+            ratingButtonItem->setPosition({startX + (i - 1) * buttonSpacing, firstRowY});
+        }
+        else
+        {
+            ratingButtonItem->setPosition({startX + (i - 6) * buttonSpacing, firstRowY - 55.f});
+        }
         ratingButtonItem->setTag(i);
         ratingButtonItem->setID("rating-button-" + std::to_string(i));
         m_normalButtonsContainer->addChild(ratingButtonItem);
     }
-
-    // second row: ratings 6-9
-    float secondRowY = 60.f;
-
-    for (int i = 6; i <= 9; i++)
+    
+    // demon difficulty buttons (10, 15, 20, 25, 30)
+    std::vector<int> demonRatings = {10, 15, 20, 25, 30};
+    
+    for (int idx = 0; idx < demonRatings.size(); idx++)
     {
+        int rating = demonRatings[idx];
         auto buttonBg = CCSprite::create("GJ_button_04.png");
-        auto buttonLabel = CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt");
+        auto buttonLabel = CCLabelBMFont::create(std::to_string(rating).c_str(), "bigFont.fnt");
         buttonLabel->setScale(0.75f);
         buttonLabel->setPosition(buttonBg->getContentSize() / 2);
         buttonBg->addChild(buttonLabel);
-        buttonBg->setID("button-bg-" + std::to_string(i));
+        buttonBg->setID("button-bg-" + std::to_string(rating));
 
         auto ratingButtonItem = CCMenuItemSpriteExtra::create(
             buttonBg,
             this,
             menu_selector(ModRatePopup::onRatingButton));
 
-        ratingButtonItem->setPosition({startX + (i - 6) * buttonSpacing, secondRowY});
-        ratingButtonItem->setTag(i);
-        ratingButtonItem->setID("rating-button-" + std::to_string(i));
-        m_normalButtonsContainer->addChild(ratingButtonItem);
-    }
-
-    // demon buttons (ratings 10-14)
-    for (int i = 10; i <= 14; i++)
-    {
-        auto buttonBg = CCSprite::create("GJ_button_04.png");
-        auto buttonLabel = CCLabelBMFont::create(std::to_string(i).c_str(), "bigFont.fnt");
-        buttonLabel->setScale(0.75f);
-        buttonLabel->setPosition(buttonBg->getContentSize() / 2);
-        buttonBg->addChild(buttonLabel);
-        buttonBg->setID("button-bg-" + std::to_string(i));
-
-        auto ratingButtonItem = CCMenuItemSpriteExtra::create(
-            buttonBg,
-            this,
-            menu_selector(ModRatePopup::onRatingButton));
-
-        ratingButtonItem->setPosition({startX + (i - 10) * buttonSpacing, firstRowY});
-        ratingButtonItem->setTag(i);
-        ratingButtonItem->setID("rating-button-" + std::to_string(i));
+        ratingButtonItem->setPosition({startX + idx * buttonSpacing, firstRowY});
+        ratingButtonItem->setTag(rating);
+        ratingButtonItem->setID("rating-button-" + std::to_string(rating));
         m_demonButtonsContainer->addChild(ratingButtonItem);
     }
 
@@ -149,7 +137,7 @@ bool ModRatePopup::setup(std::string title, GJGameLevel *level)
     m_difficultyContainer->addChild(m_difficultySprite);
     m_mainLayer->addChild(m_difficultyContainer);
 
-    // featured score textbox (invisible by default)
+    // featured score textbox (created conditionally based on role)
     m_featuredScoreInput = geode::TextInput::create(100.f, "Score");
     m_featuredScoreInput->setPosition({300.f, 30.f});
     m_featuredScoreInput->setVisible(false);
@@ -172,7 +160,6 @@ void ModRatePopup::onSubmitButton(CCObject *sender)
         Notification::create("Authentication token not found", NotificationIcon::Error)->show();
         return;
     }
-
     // account ID
     auto accountId = GJAccountManager::get()->m_accountID;
 
@@ -239,6 +226,9 @@ void ModRatePopup::onSubmitButton(CCObject *sender)
 
 void ModRatePopup::onToggleFeatured(CCObject *sender)
 {
+    // Check if user has admin role
+    int userRole = Mod::get()->getSavedValue<int>("role", 0);
+
     m_isFeatured = !m_isFeatured;
     log::info("Featured mode: {}", m_isFeatured);
 
@@ -248,7 +238,7 @@ void ModRatePopup::onToggleFeatured(CCObject *sender)
         existingCoin->removeFromParent(); // could do setVisible false but whatever
     }
 
-    if (m_isFeatured)
+    if (m_isFeatured && userRole == 2)
     {
         auto featuredCoin = CCSprite::create("rlfeaturedCoin.png"_spr);
         featuredCoin->setPosition({0, 0});
@@ -277,22 +267,18 @@ void ModRatePopup::onRatingButton(CCObject *sender)
     auto button = static_cast<CCMenuItemSpriteExtra *>(sender);
     int rating = button->getTag();
 
-    // reset the bg of the previously selected button i think
+    // reset the bg of the previously selected button
     if (m_selectedRating != -1)
     {
-        auto prevButton = m_normalButtonsContainer->getChildByID("rating-button-" + std::to_string(m_selectedRating));
-        if (!prevButton && m_selectedRating >= 10)
-        {
-            prevButton = m_demonButtonsContainer->getChildByID("rating-button-" + std::to_string(m_selectedRating));
-        }
-
+        CCMenu* prevContainer = (m_selectedRating <= 9) ? m_normalButtonsContainer : m_demonButtonsContainer;
+        auto prevButton = prevContainer->getChildByID("rating-button-" + std::to_string(m_selectedRating));
         if (prevButton)
         {
             auto prevButtonItem = static_cast<CCMenuItemSpriteExtra *>(prevButton);
             auto prevButtonBg = CCSprite::create("GJ_button_04.png");
             auto prevButtonLabel = CCLabelBMFont::create(std::to_string(m_selectedRating).c_str(), "bigFont.fnt");
-            prevButtonLabel->setScale(0.75f);
             prevButtonLabel->setPosition(prevButtonBg->getContentSize() / 2);
+            prevButtonLabel->setScale(0.75f);
             prevButtonBg->addChild(prevButtonLabel);
             prevButtonBg->setID("button-bg-" + std::to_string(m_selectedRating));
             prevButtonItem->setNormalImage(prevButtonBg);
@@ -301,11 +287,11 @@ void ModRatePopup::onRatingButton(CCObject *sender)
 
     auto currentButton = static_cast<CCMenuItemSpriteExtra *>(sender);
     auto currentButtonBg = CCSprite::create("GJ_button_01.png");
-    auto currentButtonLabel = CCLabelBMFont::create(std::to_string(button->getTag()).c_str(), "bigFont.fnt");
-    currentButtonLabel->setScale(0.75f);
+    auto currentButtonLabel = CCLabelBMFont::create(std::to_string(rating).c_str(), "bigFont.fnt");
     currentButtonLabel->setPosition(currentButtonBg->getContentSize() / 2);
+    currentButtonLabel->setScale(0.75f);
     currentButtonBg->addChild(currentButtonLabel);
-    currentButtonBg->setID("button-bg-" + std::to_string(button->getTag()));
+    currentButtonBg->setID("button-bg-" + std::to_string(rating));
     currentButton->setNormalImage(currentButtonBg);
 
     m_selectedRating = button->getTag();
@@ -322,7 +308,6 @@ void ModRatePopup::updateDifficultySprite(int rating)
     }
 
     int difficultyLevel;
-    GJDifficultyName difficulty;
 
     switch (rating)
     {
@@ -350,16 +335,16 @@ void ModRatePopup::updateDifficultySprite(int rating)
     case 10:
         difficultyLevel = 7;
         break;
-    case 11:
+    case 15:
         difficultyLevel = 8;
         break;
-    case 12:
+    case 20:
         difficultyLevel = 6;
         break;
-    case 13:
+    case 25:
         difficultyLevel = 9;
         break;
-    case 14:
+    case 30:
         difficultyLevel = 10;
         break;
     default:
