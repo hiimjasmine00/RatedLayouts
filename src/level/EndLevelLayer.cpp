@@ -178,6 +178,8 @@ class $modify(EndLevelLayer)
 
                         endLayerRef->addChild(rewardLayer, 100);
                     }
+                } else {
+                    Notification::create("Stars already claimed for this level!", NotificationIcon::Warning)->show();
                 }
                 
             }); });
