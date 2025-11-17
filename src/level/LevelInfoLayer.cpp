@@ -322,7 +322,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                         sprite->setPositionY(sprite->getPositionY() + 15);
                     } else
                     {
-                        sprite->setPositionY(sprite->getPositionY() + 15);
+                        sprite->setPositionY(sprite->getPositionY() + 10);
                     }
                     layerRef->m_fields->m_difficultyOffsetApplied = true;
 
