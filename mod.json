@@ -8,7 +8,7 @@
 	},
 	"id": "arcticwoof.rated_layouts",
 	"name": "Rated Layouts",
-	"version": "v0.1.1-beta.1",
+	"version": "v0.1.2-beta.1",
 	"developer": "ArcticWoof",
 	"description": "Play rated classic layout levels",
 	"resources": {
@@ -30,8 +30,8 @@
 	},
 	"links": {
 		"source": "https://github.com/DumbCaveSpider/RatedLayouts",
-		"homepage": "https://arcticwoof.com.au/",
-		"community": "https://discord.gg/gXcppxTNxC"
+		"homepage": "https://arcticwoof.xyz/",
+		"community": "https://discord.gg/jBf2wfBgVT"
 	},
 	"tags": [
 		"content",
