@@ -134,15 +134,15 @@ class $modify(EndLevelLayer)
                     if (auto rewardLayer = CurrencyRewardLayer::create(
                         0, 0, 0,
                         starReward,
-                        CurrencySpriteType::Diamond, 0, CurrencySpriteType::Diamond,
+                        CurrencySpriteType::Star, 0, CurrencySpriteType::Star,
                         0,
                         endLayerRef->getPosition(), CurrencyRewardType::Default, 0.0, 1.0
                     ))
                     {
                         // display the calculated stars
-                        rewardLayer->m_diamondsLabel->setString(numToString(displayStars).c_str());
-                        rewardLayer->m_diamonds = displayStars;
-                        rewardLayer->m_diamondsSprite = CCSprite::create("rlStarIcon.png"_spr);
+                        rewardLayer->m_starsLabel->setString(numToString(displayStars).c_str());
+                        rewardLayer->m_stars = displayStars;
+                        rewardLayer->m_starsSprite = CCSprite::create("rlStarIcon.png"_spr);
                         
                         // Replace the main display sprite
                         if (auto node = rewardLayer->m_mainNode->getChildByType<CCSprite*>(0)) {

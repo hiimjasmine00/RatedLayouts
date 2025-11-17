@@ -114,7 +114,7 @@ class $modify(LevelCell)
             auto newStarIcon = CCSprite::create("rlStarIcon.png"_spr);
             if (newStarIcon)
             {
-                newStarIcon->setPosition({difficultySprite->getContentSize().width / 2 + 8, -6});
+                newStarIcon->setPosition({difficultySprite->getContentSize().width / 2 + 8, -8});
                 newStarIcon->setScale(0.53f);
                 newStarIcon->setID("rl-star-icon");
                 difficultySprite->addChild(newStarIcon);
