@@ -60,7 +60,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
             // add an admin button
             CCSprite *buttonSprite = nullptr;
 
-            if ((isPlatformer && starRatings != 0) || starRatings != 0)
+            if (isPlatformer || starRatings != 0)
             {
                 buttonSprite = CCSpriteGrayscale::create("rlStarIconBig.png"_spr);
             }
