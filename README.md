@@ -24,6 +24,7 @@ _... and the best part..._
 
 - **Custom Achievements**: Custom Achievements for completing rated layout levels and achieving milestones.
 - **Leaderboard Integration**: Compete with other players on leaderboards for the most Blueprint Stars and Blueprint Creator Points!
+- **Daily and Weekly Rated Layout Levels**: New daily and weekly demon rated layout levels to showcase!
 
 <co>**Note:** This is currently in beta and expected to have some bugs and unfinished features. Please report any issues you encounter!</c>
 
