@@ -478,15 +478,15 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                         auto coinIcon1 = sprite->getChildByID("coin-icon-1");
                         if (coinIcon1)
                         {
-                            sprite->setPositionY(sprite->getPositionY() + 25);
+                            sprite->setPositionY(sprite->getPositionY() + 30);
                         } else 
                         {
-                            sprite->setPositionY(sprite->getPositionY() + 15);
+                            sprite->setPositionY(sprite->getPositionY() + 20);
                         }
 
                     } else
                     {
-                        sprite->setPositionY(sprite->getPositionY() + 10);
+                        sprite->setPositionY(sprite->getPositionY() + 15);
                     }
                     
                     auto starIcon = CCSprite::create("rlStarIcon.png"_spr);
@@ -507,22 +507,18 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                     starIcon->setPosition({difficultySprite->getContentSize().width / 2 + 7, -7});
                     starLabel->setPosition({starIcon->getPositionX() - 7, starIcon->getPositionY()});
                     
-                    // absolute hack to reposition stars after a short delay
-                    Ref<CCSprite> starIconRef = starIcon;
-                    Ref<CCLabelBMFont> starLabelRef = starLabel;
-                    Ref<CCNode> diffSpriteRef = difficultySprite;
-                    
-                    auto delayAction = CCDelayTime::create(0.1f);
-                    auto callFunc = CCCallFunc::create(layerRef, callfunc_selector(RLLevelInfoLayer::repositionStars));
-                    auto sequence = CCSequence::create(delayAction, callFunc, nullptr);
-                    layerRef->runAction(sequence);
-                    
                     // Update featured coin position
                     auto featureCoin = sprite->getChildByID("featured-coin");
                     if (featureCoin)
                     {
                         featureCoin->setPosition({difficultySprite->getContentSize().width / 2, difficultySprite->getContentSize().height / 2});
                     }
+
+                    // hacky fix to reposition stars after frame update
+                    auto delayAction = CCDelayTime::create(0.1f);
+                    auto callFunc = CCCallFunc::create(layerRef, callfunc_selector(RLLevelInfoLayer::repositionStars));
+                    auto sequence = CCSequence::create(delayAction, callFunc, nullptr);
+                    layerRef->runAction(sequence);
                 } });
         }
     }
@@ -594,6 +590,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
     // bruh
     void repositionStars()
     {
+        log::debug("Repositioning stars...");
         auto difficultySprite = this->getChildByID("difficulty-sprite");
         if (difficultySprite)
         {
@@ -605,7 +602,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer)
                 starIcon->setPosition({difficultySprite->getContentSize().width / 2 + 7, -7});
             }
 
-            if (starLabel)
+            if (starLabel && starIcon)
             {
                 starLabel->setPosition({starIcon->getPositionX() - 7, starIcon->getPositionY()});
             }
