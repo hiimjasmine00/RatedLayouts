@@ -20,10 +20,9 @@ class $modify(GJGarageLayer)
         auto statMenu = this->getChildByID("capeling.garage-stats-menu/stats-menu");
 
         auto starSprite = CCSprite::create("rlStarIcon.png"_spr);
-        starSprite->setScale(0.54f);
         auto myStatItem = StatsDisplayAPI::getNewItem("blueprint-stars"_spr,
                                                       starSprite,
-                                                      Mod::get()->getSavedValue<int>("stars"), 0.8f);
+                                                      Mod::get()->getSavedValue<int>("stars"), 0.54f);
 
         m_fields->myStatItem = myStatItem;
 
