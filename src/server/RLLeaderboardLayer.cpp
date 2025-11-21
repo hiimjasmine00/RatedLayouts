@@ -81,7 +81,7 @@ bool RLLeaderboardLayer::init() {
 
 void RLLeaderboardLayer::onInfoButton(CCObject* sender) {
       MDPopup::create("Rated Layouts Leaderboard",
-                      "The leaderboard shows the top players in <cb>Rated Layouts</cb> based on <cl>Stars</cl> or <cl>Creator Points</cl>.",
+                      "The leaderboard shows the top players in <cb>Rated Layouts</cb> based on <cl>Stars</cl> or <cl>Creator Points</cl>.\n<cr>Usernames are only shown when you viewed their name already</cr>",
                       "OK")
           ->show();
 }
