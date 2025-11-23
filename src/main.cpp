@@ -1,14 +1,12 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/MenuLayer.hpp>
+#include <Geode/modify/SupportLayer.hpp>
 #include <argon/argon.hpp>
 
 using namespace geode::prelude;
 
-class $modify(MenuLayer) {
-  bool init() {
-    if (!MenuLayer::init())
-      return false;
-
+class $modify(SupportLayer) {
+  void onRequestAccess(
+      CCObject *sender) { // i assume that no one will ever get gd mod xddd
     // argon my beloved <3
     std::string token;
     auto res = argon::startAuth(
@@ -74,10 +72,10 @@ class $modify(MenuLayer) {
             ->show();
         Mod::get()->setSavedValue<int>("role", role);
       } else {
+        Notification::create("Nothing happened.", NotificationIcon::Error)
+            ->show();
         Mod::get()->setSavedValue<int>("role", 0);
       }
     });
-
-    return true;
   }
 };
