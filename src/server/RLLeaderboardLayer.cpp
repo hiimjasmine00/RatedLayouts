@@ -87,7 +87,7 @@ void RLLeaderboardLayer::onInfoButton(CCObject* sender) {
 }
 
 void RLLeaderboardLayer::onBackButton(CCObject* sender) {
-      CCDirector::sharedDirector()->popSceneWithTransition(0.5f, kPopTransitionFade);  // im such a robtop doing this fancy pop scene :D
+      CCDirector::sharedDirector()->popSceneWithTransition(0.5f, PopTransition::kPopTransitionFade);  // im such a robtop doing this fancy pop scene :D
 }
 
 void RLLeaderboardLayer::keyBackClicked() {
@@ -95,7 +95,7 @@ void RLLeaderboardLayer::keyBackClicked() {
 }
 
 void RLLeaderboardLayer::onAccountClicked(CCObject* sender) {
-      auto button = static_cast<CCMenuItemLabel*>(sender);
+      auto button = static_cast<CCMenuItem*>(sender);
       int accountId = button->getTag();
       ProfilePage::create(accountId, false)->show();
 }
@@ -218,16 +218,16 @@ void RLLeaderboardLayer::populateLeaderboard(const std::vector<matjson::Value>& 
             rankLabel->setAnchorPoint({0.f, 0.5f});
             cell->addChild(rankLabel);
 
-            auto username = GameLevelManager::get()->tryGetUsername(accountId);
+            auto username = userValue["username"].asString().unwrapOrDefault();
             auto accountLabel = CCLabelBMFont::create(
                 username.c_str(), "goldFont.fnt");
             accountLabel->setAnchorPoint({0.f, 0.5f});
             accountLabel->setScale(0.7f);
             accountLabel->setPosition({50.f, 20.f});
-            
+
             auto buttonMenu = CCMenu::create();
             buttonMenu->setPosition({0, 0});
-            
+
             auto accountButton = CCMenuItemSpriteExtra::create(
                 accountLabel,
                 this,
@@ -235,7 +235,7 @@ void RLLeaderboardLayer::populateLeaderboard(const std::vector<matjson::Value>& 
             accountButton->setTag(accountId);
             accountButton->setPosition({50.f, 20.f});
             accountButton->setAnchorPoint({0.f, 0.5f});
-            
+
             buttonMenu->addChild(accountButton);
             cell->addChild(buttonMenu);
 
