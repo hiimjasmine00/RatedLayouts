@@ -27,7 +27,7 @@ bool RLCreatorLayer::init() {
       this->addChild(backMenu);
 
       auto mainMenu = CCMenu::create();
-      mainMenu->setPosition({winSize.width / 2, winSize.height / 2});
+      mainMenu->setPosition({winSize.width / 2, winSize.height / 2 - 10});
       mainMenu->setContentSize({300.f, 240.f});
       mainMenu->setLayout(RowLayout::create()
                               ->setGap(6.f)
@@ -35,6 +35,10 @@ bool RLCreatorLayer::init() {
                               ->setCrossAxisOverflow(false));
 
       this->addChild(mainMenu);
+
+      auto title = CCSprite::create("RL_title.png"_spr);
+      title->setPosition({winSize.width / 2, winSize.height / 2 + 130});
+      this->addChild(title);
 
       auto featuredSpr = CCSprite::create("RL_featuredBtn.png"_spr);
       if (!featuredSpr) featuredSpr = CCSprite::create("RL_featuredBtn.png"_spr);
@@ -189,9 +193,9 @@ bool RLCreatorLayer::init() {
             // keep square frequency higher through direct square pass + higher spawn chance
 
             // probabilities & tuning - modify these to change density/cluster sizes
-            float spawnChanceSquare = 0.10f;  // chance to start a square cluster on a ground cell
-            float clusterGrowChance = 0.85f;  // chance to expand a cluster into neighbors
-            int maxClusterSize = 8;           // max size of clusters
+            float spawnChanceSquare = 0.05f;  // chance to start a square cluster on a ground cell
+            float clusterGrowChance = 0.70f;  // chance to expand a cluster into neighbors
+            int maxClusterSize = 6;           // max size of clusters
             int maxObjects = 60;              // global spawn cap
             int objectsSpawned = 0;
 
@@ -411,8 +415,8 @@ bool RLCreatorLayer::init() {
                   // if square has no horizontal neighbor, try to connect it
                   if (!left && !right && !up && !down) {
                         std::uniform_real_distribution<float> connectChance(0.f, 1.f);
-                        // always attempt (high chance) to add at least one neighbor
-                        if (connectChance(gen) < 0.9f) {
+                        // attempt to add at least one neighbor only sometimes (reduced)
+                        if (connectChance(gen) < 0.6f) {
                               std::uniform_int_distribution<int> dir(0, 3);
                               int d = dir(gen);  // 0=left, 1=right, 2=up, 3=down
                               int nc = c;
@@ -461,9 +465,9 @@ bool RLCreatorLayer::init() {
                               }
                         }
                   }
-                  // Random growth: try to add extra neighbors around squares randomly
+                  // add extra neighbors around squares randomly
                   std::uniform_real_distribution<float> growChance(0.f, 1.f);
-                  if (growChance(gen) < 0.25f) {
+                  if (growChance(gen) < 0.125f) {
                         // try left
                         int nc = c - 1;
                         if (nc >= 0 && !occupied[r][nc]) {
@@ -494,7 +498,7 @@ bool RLCreatorLayer::init() {
                               }
                         }
                   }
-                  if (growChance(gen) < 0.25f) {
+                  if (growChance(gen) < 0.125f) {
                         // try right
                         int nc = c + 1;
                         if (nc < cols && !occupied[r][nc]) {
@@ -632,9 +636,53 @@ bool RLCreatorLayer::init() {
                               }
                         }
                   }
-                  // Prioritize placing squares first, then ground spikes
+                  // Prefer ground spikes first to avoid increasing square density too much
                   if (objectsSpawned < maxObjects) {
-                        // gather all empty cells
+                        // First, try to place ground spikes in empty ground cells (no probability) to fill
+                        for (int col2 = 0; col2 < cols; ++col2) {
+                              if (objectsSpawned >= maxObjects) break;
+                              if (occupied[0][col2]) continue;
+                              auto spikePair = spikeNames[spikePick(gen)];
+                              const char* spFrame = spikePair.first;
+                              const char* spFile = spikePair.second;
+                              auto spSpr = CCSprite::createWithSpriteFrameName(spFrame);
+                              if (!spSpr) spSpr = CCSprite::create(spFile);
+                              if (!spSpr) continue;
+                              spSpr->setAnchorPoint({0.f, 0.f});
+                              float sx = col2 * gridX;
+                              float sy = minY;  // on ground
+                              float spW = spSpr->getContentSize().width;
+                              sx += std::max(0.f, (gridX - spW) / 2.f);
+                              int spSpanCols = std::max(1, static_cast<int>(ceil(spW / gridX)));
+                              int spSpanRows = std::max(1, static_cast<int>(ceil(spSpr->getContentSize().height / gridY)));
+                              int spCol = static_cast<int>(floor((sx) / gridX));
+                              int spRow = static_cast<int>(floor((sy - minY) / gridY));
+                              bool canPlace = true;
+                              for (int r2 = spRow; r2 < spRow + spSpanRows && canPlace; ++r2) {
+                                    for (int c2 = spCol; c2 < spCol + spSpanCols; ++c2) {
+                                          if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols) {
+                                                canPlace = false;
+                                                break;
+                                          }
+                                          if (occupied[r2][c2]) {
+                                                canPlace = false;
+                                                break;
+                                          }
+                                    }
+                              }
+                              if (!canPlace) continue;
+                              m_groundContainer->addChild(spSpr, 1);
+                              objectsSpawned++;
+                              spSpr->setPosition({sx, sy});
+                              m_bgDecorations.push_back(spSpr);
+                              for (int r2 = spRow; r2 < spRow + spSpanRows && r2 < rows; ++r2) {
+                                    for (int c2 = spCol; c2 < spCol + spSpanCols && c2 < cols; ++c2) {
+                                          occupied[r2][c2] = true;
+                                    }
+                              }
+                        }
+
+                        // If still short, attempt to place a small number of additional squares (limited)
                         std::vector<std::pair<int, int>> empties;
                         empties.reserve(rows * cols);
                         for (int rr = 0; rr < rows; ++rr) {
@@ -642,8 +690,7 @@ bool RLCreatorLayer::init() {
                                     if (!occupied[rr][cc2]) empties.push_back({rr, cc2});
                               }
                         }
-                        // try to place squares in empty cells, preferring ground-adjacent cells first
-                        // sort empties by priority: cells adjacent to squareGrid cells get higher priority
+                        // sort empties by adjacency score to prefer ground-adjacent spots
                         std::sort(empties.begin(), empties.end(), [&](const auto& a, const auto& b) {
                               auto score = [&](int r, int c) {
                                     int s = 0;
@@ -655,18 +702,16 @@ bool RLCreatorLayer::init() {
                                                 if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && squareGrid[nr][nc]) s += 2;
                                           }
                                     }
-                                    // ground cells get a small boost
                                     if (r == 0) s += 1;
                                     return s;
                               };
                               return score(a.first, a.second) > score(b.first, b.second);
                         });
-
+                        int finalSquareFillLimit = 4;  // limit extra squares to avoid increasing density
                         for (auto [rr, cc2] : empties) {
                               if (objectsSpawned >= maxObjects) break;
-                              // ensure still empty
+                              if (finalSquareFillLimit <= 0) break;
                               if (occupied[rr][cc2]) continue;
-                              // try to place a square
                               auto fillSq = CCSprite::createWithSpriteFrameName(squarePair.first);
                               if (!fillSq) fillSq = CCSprite::create(squarePair.second);
                               if (!fillSq) continue;
@@ -700,51 +745,7 @@ bool RLCreatorLayer::init() {
                                     }
                               }
                               squares.push_back(SquareEntry{rr, cc2, fillSq, fw, fh, fSpanCols, fSpanRows});
-                        }
-                        // if still short, try to place ground spikes on empty ground cells
-                        if (objectsSpawned < maxObjects) {
-                              for (int col2 = 0; col2 < cols; ++col2) {
-                                    if (objectsSpawned >= maxObjects) break;
-                                    if (occupied[0][col2]) continue;
-                                    auto spikePair = spikeNames[spikePick(gen)];
-                                    const char* spFrame = spikePair.first;
-                                    const char* spFile = spikePair.second;
-                                    auto spSpr = CCSprite::createWithSpriteFrameName(spFrame);
-                                    if (!spSpr) spSpr = CCSprite::create(spFile);
-                                    if (!spSpr) continue;
-                                    spSpr->setAnchorPoint({0.f, 0.f});
-                                    float sx = col2 * gridX;
-                                    float sy = minY;  // on ground
-                                    float spW = spSpr->getContentSize().width;
-                                    sx += std::max(0.f, (gridX - spW) / 2.f);
-                                    int spSpanCols = std::max(1, static_cast<int>(ceil(spW / gridX)));
-                                    int spSpanRows = std::max(1, static_cast<int>(ceil(spSpr->getContentSize().height / gridY)));
-                                    int spCol = static_cast<int>(floor((sx) / gridX));
-                                    int spRow = static_cast<int>(floor((sy - minY) / gridY));
-                                    bool canPlace = true;
-                                    for (int r2 = spRow; r2 < spRow + spSpanRows && canPlace; ++r2) {
-                                          for (int c2 = spCol; c2 < spCol + spSpanCols; ++c2) {
-                                                if (r2 < 0 || r2 >= rows || c2 < 0 || c2 >= cols) {
-                                                      canPlace = false;
-                                                      break;
-                                                }
-                                                if (occupied[r2][c2]) {
-                                                      canPlace = false;
-                                                      break;
-                                                }
-                                          }
-                                    }
-                                    if (!canPlace) continue;
-                                    m_groundContainer->addChild(spSpr, 1);
-                                    objectsSpawned++;
-                                    spSpr->setPosition({sx, sy});
-                                    m_bgDecorations.push_back(spSpr);
-                                    for (int r2 = spRow; r2 < spRow + spSpanRows && r2 < rows; ++r2) {
-                                          for (int c2 = spCol; c2 < spCol + spSpanCols && c2 < cols; ++c2) {
-                                                occupied[r2][c2] = true;
-                                          }
-                                    }
-                              }
+                              finalSquareFillLimit--;
                         }
                   }
                   // optionally spawn some ground spikes in empty columns

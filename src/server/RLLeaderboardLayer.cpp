@@ -358,10 +358,9 @@ void RLLeaderboardLayer::populateLeaderboard(
             cell->addChild(scoreLabelText);
 
             const bool isStar = m_starsTab->isToggled();
-            const char* iconName = isStar ? "rlStarIcon.png"_spr : "rlhammerIcon.png"_spr;
+            const char* iconName = isStar ? "rlStarIconMed.png"_spr : "rlhammerIcon.png"_spr;
             auto iconSprite = CCSprite::create(iconName);
-            float iconScale = isStar ? 1.0f : 0.65f;
-            iconSprite->setScale(iconScale);
+            iconSprite->setScale(0.65f);
             iconSprite->setPosition({325.f, 20.f});
             iconSprite->setAnchorPoint({0.f, 0.5f});
             cell->addChild(iconSprite);

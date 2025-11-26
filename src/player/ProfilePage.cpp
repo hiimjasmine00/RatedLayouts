@@ -67,7 +67,7 @@ class $modify(RLProfilePage, ProfilePage) {
             container->setAnchorPoint({1.f, .5f});
             statsMenu->addChild(container);
 
-            auto blueprintStars = CCSprite::create("rlStarIcon.png"_spr);
+            auto blueprintStars = CCSprite::create("rlStarIconMed.png"_spr);
             if (blueprintStars) {
                   blueprintStars->setID("blueprint-stars-icon");
                   blueprintStars->setScale(1.0f);
@@ -211,7 +211,7 @@ class $modify(RLProfilePage, ProfilePage) {
                   container->setAnchorPoint({1.f, .5f});
                   statsMenu->addChild(container);
 
-                  auto blueprintStars = CCSprite::create("rlStarIcon.png"_spr);
+                  auto blueprintStars = CCSprite::create("rlStarIconMed.png"_spr);
                   if (blueprintStars) {
                         blueprintStars->setID("blueprint-stars-icon");
                         blueprintStars->setScale(1.0f);
