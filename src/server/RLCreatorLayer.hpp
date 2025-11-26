@@ -15,6 +15,16 @@ class RLCreatorLayer : public CCLayer {
       void onNewRated(CCObject* sender);
       void onSendLayouts(CCObject* sender);
 
+      CCNode* m_bgContainer = nullptr;
+      std::vector<CCSprite*> m_bgTiles;
+      CCNode* m_groundContainer = nullptr;
+      std::vector<CCSprite*> m_groundTiles;
+      CCNode* m_floorContainer = nullptr;
+      std::vector<CCSprite*> m_floorTiles;
+      float m_bgSpeed = 40.f;     // pixels per second
+      float m_groundSpeed = 150.f; // pixels per second
+      void update(float dt) override;
+
      public:
       static RLCreatorLayer* create();
 };
