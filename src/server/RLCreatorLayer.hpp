@@ -14,6 +14,7 @@ class RLCreatorLayer : public CCLayer {
       void onFeaturedLayouts(CCObject* sender);
       void onNewRated(CCObject* sender);
       void onSendLayouts(CCObject* sender);
+      void onInfoButton(CCObject* sender);
 
       CCNode* m_bgContainer = nullptr;
       std::vector<CCSprite*> m_bgTiles;

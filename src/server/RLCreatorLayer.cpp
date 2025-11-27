@@ -38,6 +38,7 @@ bool RLCreatorLayer::init() {
 
       auto title = CCSprite::create("RL_title.png"_spr);
       title->setPosition({winSize.width / 2, winSize.height / 2 + 130});
+      title->setScale(0.8f);
       this->addChild(title);
 
       auto featuredSpr = CCSprite::create("RL_featuredBtn.png"_spr);
@@ -74,6 +75,17 @@ bool RLCreatorLayer::init() {
       mainMenuBg->setAnchorPoint({0, 0});
       mainMenuBg->setOpacity(150);
       mainMenu->addChild(mainMenuBg, -1);
+
+      // info button at the bottom left
+      auto infoMenu = CCMenu::create();
+      infoMenu->setPosition({0, 0});
+      auto infoButtonSpr =
+          CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png");
+      auto infoButton = CCMenuItemSpriteExtra::create(
+          infoButtonSpr, this, menu_selector(RLCreatorLayer::onInfoButton));
+      infoButton->setPosition({25, 25});
+      infoMenu->addChild(infoButton);
+      this->addChild(infoMenu);
 
       // test the ground moving thingy :o
       // idk how gd actually does it correctly but this is close enough i guess
@@ -805,6 +817,20 @@ bool RLCreatorLayer::init() {
       this->scheduleUpdate();
       this->setKeypadEnabled(true);
       return true;
+}
+
+void RLCreatorLayer::onInfoButton(CCObject* sender) {
+      MDPopup::create(
+          "About Rated Layouts",
+          "## <cl>Rated Layouts</cl> is a community-run rating system focusing on fun gameplay in classic layout levels.\n\n"
+          "### Each of the buttons on this screen lets you browse different categories of rated layouts:\n\n"
+          "<cg>**Featured Layouts**</cg>: Featured layouts that showcase fun gameplay and visuals. Each featured levels are ranked based of their featured score.\n\n"
+          "<cg>**Newly Rated**</cg>: The latest layouts that have been rated by the Layout Admins.\n\n"
+          "<cg>**Sent Layouts**</cg>: Suggested or sent layouts by the Layout Moderators.\n\n"
+          "You can also view the <cg>**Leaderboard**</cg> to see top-rated layout creators and players!\n\n"
+          "### Join the <cb>[Rated Layout Discord](https://discord.gg/jBf2wfBgVT)</cb> server for more information and to submit your layouts for rating.\n\n",
+          "OK")
+          ->show();
 }
 
 void RLCreatorLayer::onBackButton(CCObject* sender) {

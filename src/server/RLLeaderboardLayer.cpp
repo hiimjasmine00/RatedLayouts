@@ -143,7 +143,9 @@ void RLLeaderboardLayer::onInfoButton(CCObject* sender) {
       MDPopup::create(
           "Rated Layouts Leaderboard",
           "The leaderboard shows the top players in <cb>Rated Layouts</cb> based "
-          "on <cl>Stars</cl> or <cl>Creator Points</cl>.",
+          "on <cl>Stars</cl> or <cl>Creator Points</cl>. You can view each category by selecting the tabs.\n\n"
+          "<cl>Blueprint Stars</cl> are stored and earned by completely a <cb>Rated Layouts</cb> level and are only counted when beaten legitimately. Any <cr>unfair</cr> means of obtaining these stars will result in a exclusion from the leaderboard.\n\n"
+          "<cl>Blueprint Creator Points</cl> are earned based on the how many rated layouts levels you have in your account. Getting a rated layout level earns you 1 point and getting a <cy>featured rated layout</cy> level earns you 2 points.",
           "OK")
           ->show();
 }
