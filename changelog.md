@@ -1,3 +1,8 @@
+# v0.1.7-beta.1
+
+- Added Info Button at the Rated Layouts Creator Layer that explains about Rated Layouts and its features.
+- Minor fixes and improvements.
+
 # v0.1.6-beta.1
 
 - Added a custom layer for all Rated Layouts related features. (found at the bottom left of the creator layer)
