@@ -41,10 +41,28 @@ class $modify(RLProfilePage, ProfilePage) {
             auto layoutPointsContainer =
                 statsMenu->getChildByID("layout-points-container");
 
+            // If blueprint container exists
+            if (blueprintStarsContainer) {
+                  auto existingLabel =
+                      typeinfo_cast<CCLabelBMFont*>(
+                          blueprintStarsContainer->getChildByID("label"));
+                  if (existingLabel) {
+                        m_fields->blueprintStarsCount = existingLabel;
+                  }
+            }
+
+            // If layout points container exists
+            if (layoutPointsContainer) {
+                  auto existingLPLabel =
+                      typeinfo_cast<CCLabelBMFont*>(
+                          layoutPointsContainer->getChildByID("label"));
+                  if (existingLPLabel) {
+                        m_fields->layoutPointsCount = existingLPLabel;
+                  }
+            }
+
             if (blueprintStarsContainer && layoutPointsContainer) {
-                  log::info(
-                      "Blueprint stars and layout points already exist, skipping "
-                      "creation");
+                  log::info("stars and points exist");
                   if (score) {
                         fetchProfileData(score->m_accountID);
                   }
@@ -63,7 +81,9 @@ class $modify(RLProfilePage, ProfilePage) {
                           .1f);  // geode limit node size thingy blep
 
             auto container = CCNode::create();
-            container->setContentSize({blueprintStarsCount->getContentWidth(), 19.5f});
+            float bsWidth = blueprintStarsCount->getContentSize().width * blueprintStarsCount->getScaleX() + 5.f;
+            if (bsWidth > 50.f) bsWidth = 50.f;
+            container->setContentSize({bsWidth, 19.5f});
             container->setID("blueprint-stars-container");
 
             container->addChildAtPosition(blueprintStarsCount, Anchor::Right);
@@ -77,31 +97,8 @@ class $modify(RLProfilePage, ProfilePage) {
                   statsMenu->addChild(blueprintStars);
             }
 
-            auto layoutPointsCount =
-                CCLabelBMFont::create(numToString(0).c_str(), "bigFont.fnt");
-            layoutPointsCount->setID("label");
-            layoutPointsCount->setAnchorPoint({1.f, .5f});
-
-            limitNodeSize(layoutPointsCount, {layoutPointsCount->getContentSize()}, .7f,
-                          .1f);
-
-            auto layoutContainer = CCNode::create();
-            layoutContainer->setContentSize(
-                {layoutPointsCount->getContentWidth(), 19.5f});
-            layoutContainer->setID("layout-points-container");
-
-            layoutContainer->addChildAtPosition(layoutPointsCount, Anchor::Right);
-            layoutContainer->setAnchorPoint({1.f, .5f});
-            statsMenu->addChild(layoutContainer);
-
-            auto layoutIcon = CCSprite::create("rlhammerIcon.png"_spr);
-            if (layoutIcon) {
-                  layoutIcon->setID("layout-points-icon");
-                  statsMenu->addChild(layoutIcon);
-            }
-
             m_fields->blueprintStarsCount = blueprintStarsCount;
-            m_fields->layoutPointsCount = layoutPointsCount;
+            m_fields->layoutPointsCount = nullptr;
 
             if (score) {
                   fetchProfileData(score->m_accountID);
@@ -208,8 +205,9 @@ class $modify(RLProfilePage, ProfilePage) {
                                 {blueprintStarsCount->getContentSize()}, .7f, .1f);
 
                   auto container = CCNode::create();
-                  container->setContentSize(
-                      {blueprintStarsCount->getContentWidth(), 19.5f});
+                  float bsWidth = blueprintStarsCount->getContentSize().width * blueprintStarsCount->getScaleX();
+                  if (bsWidth > 50.f) bsWidth = 50.f;
+                  container->setContentSize({bsWidth, 19.5f});
                   container->setID("blueprint-stars-container");
                   container->addChildAtPosition(blueprintStarsCount, Anchor::Right);
                   container->setAnchorPoint({1.f, .5f});
@@ -222,29 +220,34 @@ class $modify(RLProfilePage, ProfilePage) {
                         statsMenu->addChild(blueprintStars);
                   }
 
-                  auto layoutPointsCount =
-                      CCLabelBMFont::create(numToString(points).c_str(), "bigFont.fnt");
-                  layoutPointsCount->setID("label");
-                  layoutPointsCount->setAnchorPoint({1.f, .5f});
-                  limitNodeSize(layoutPointsCount, {layoutPointsCount->getContentSize()},
-                                .7f, .1f);
-
-                  auto layoutContainer = CCNode::create();
-                  layoutContainer->setContentSize(
-                      {layoutPointsCount->getContentWidth(), 19.5f});
-                  layoutContainer->setID("layout-points-container");
-                  layoutContainer->addChildAtPosition(layoutPointsCount, Anchor::Right);
-                  layoutContainer->setAnchorPoint({1.f, .5f});
-                  statsMenu->addChild(layoutContainer);
-
-                  auto layoutIcon = CCSprite::create("rlhammerIcon.png"_spr);
-                  if (layoutIcon) {
-                        layoutIcon->setID("layout-points-icon");
-                        statsMenu->addChild(layoutIcon);
-                  }
-
                   pageRef->m_fields->blueprintStarsCount = blueprintStarsCount;
-                  pageRef->m_fields->layoutPointsCount = layoutPointsCount;
+                  if (points > 0) {
+                        auto layoutPointsCount =
+                            CCLabelBMFont::create(numToString(points).c_str(), "bigFont.fnt");
+                        layoutPointsCount->setID("label");
+                        layoutPointsCount->setAnchorPoint({1.f, .5f});
+                        limitNodeSize(layoutPointsCount, {layoutPointsCount->getContentSize()},
+                                      .7f, .1f);
+
+                        auto layoutContainer = CCNode::create();
+                        float lpWidth = layoutPointsCount->getContentSize().width * layoutPointsCount->getScaleX();
+                        if (lpWidth > 50.f) lpWidth = 50.f;
+                        layoutContainer->setContentSize({lpWidth, 19.5f});
+                        layoutContainer->setID("layout-points-container");
+                        layoutContainer->addChildAtPosition(layoutPointsCount, Anchor::Right);
+                        layoutContainer->setAnchorPoint({1.f, .5f});
+                        statsMenu->addChild(layoutContainer);
+
+                        auto layoutIcon = CCSprite::create("rlhammerIcon.png"_spr);
+                        if (layoutIcon) {
+                              layoutIcon->setID("layout-points-icon");
+                              statsMenu->addChild(layoutIcon);
+                        }
+
+                        pageRef->m_fields->layoutPointsCount = layoutPointsCount;
+                  } else {
+                        pageRef->m_fields->layoutPointsCount = nullptr;
+                  }
 
                   statsMenu->updateLayout();
 
