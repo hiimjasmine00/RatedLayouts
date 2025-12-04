@@ -64,25 +64,6 @@ bool RLUserControl::setup() {
       m_optionsLayout = static_cast<RowLayout*>(optionsMenu->getLayout());
       optionsMenu->updateLayout();
 
-      // add moderator toggle if current user is an admin
-      int userRole = Mod::get()->getSavedValue<int>("role", 0);
-      if (userRole == 2) {
-            auto modBtnSpr = ButtonSprite::create("Set Moderator", 0.8f);
-            if (modBtnSpr) modBtnSpr->updateBGImage("GJ_button_01.png");
-            auto modBtnItem = CCMenuItemSpriteExtra::create(modBtnSpr, this, menu_selector(RLUserControl::onOptionClicked));
-            modBtnItem->setID("rl-option-make-mod");
-            modBtnItem->setSizeMult(1.5f);
-            optionsMenu->addChild(modBtnItem);
-
-            UserOption modOpt;
-            modOpt.key = "giveMod";
-            modOpt.persisted = false;
-            modOpt.desired = false;
-            modOpt.button = modBtnSpr;
-            modOpt.item = modBtnItem;
-            m_userOptions.push_back(modOpt);
-            optionsMenu->updateLayout();
-      }
       // Add an apply button to submit the final state
       auto applySprite = ButtonSprite::create("Apply", 1.f);
       m_applyButton = CCMenuItemSpriteExtra::create(applySprite, this, menu_selector(RLUserControl::onApplyChanges));
@@ -126,21 +107,10 @@ bool RLUserControl::setup() {
                   // might refactor this later
                   auto json = jsonRes.unwrap();
                   bool isExcluded = json["excluded"].asBool().unwrapOrDefault();
-                  bool isMod = json["role"].asInt().unwrapOrDefault() == 1;
 
                   if (thisRef) {
                         thisRef->m_isInitializing = true;
-                        for (auto& opt : thisRef->m_userOptions) {
-                              if (opt.key == "exclude") {
-                                    opt.persisted = isExcluded;
-                                    opt.desired = isExcluded;
-                                    if (opt.button) opt.button->updateBGImage(isExcluded ? "GJ_button_02.png" : "GJ_button_01.png");
-                              } else if (opt.key == "giveMod") {
-                                    opt.persisted = isMod;
-                                    opt.desired = isMod;
-                                    if (opt.button) opt.button->updateBGImage(isMod ? "GJ_button_02.png" : "GJ_button_01.png");
-                              }
-                        }
+                        thisRef->setOptionState("exclude", isExcluded, true);
                         thisRef->m_isInitializing = false;
                   }
             });
@@ -157,9 +127,8 @@ void RLUserControl::onOptionClicked(CCObject* sender) {
             if (opt.item == item) {
                   // flip the desired state and update BG
                   opt.desired = !opt.desired;
-                  if (opt.button) {
-                        opt.button->updateBGImage(opt.desired ? "GJ_button_02.png" : "GJ_button_01.png");
-                  }
+                  // use helper to update UI and apply-button state
+                  setOptionState(opt.key, opt.desired, false);
                   break;
             }
       }
@@ -207,9 +176,7 @@ void RLUserControl::onApplyChanges(CCObject* sender) {
 
       // disable UI while request is in-flight
       if (m_applyButton) m_applyButton->setEnabled(false);
-      for (auto& opt : m_userOptions) {
-            if (opt.item) opt.item->setEnabled(false);
-      }
+      setAllOptionsEnabled(false);
       if (m_applySpinner) {
             m_applySpinner->setVisible(true);
             m_applyButton->setEnabled(false);
@@ -226,9 +193,7 @@ void RLUserControl::onApplyChanges(CCObject* sender) {
             if (!thisRef) return;
 
             // re-enable UI regardless
-            for (auto& opt : thisRef->m_userOptions) {
-                  if (opt.item) opt.item->setEnabled(true);
-            }
+            thisRef->setAllOptionsEnabled(true);
             if (thisRef->m_applyButton) thisRef->m_applyButton->setEnabled(true);
             if (thisRef->m_applySpinner) thisRef->m_applySpinner->setVisible(false);
             if (thisRef->m_applyButton) thisRef->m_applyButton->setVisible(true);
@@ -293,4 +258,34 @@ RLUserControl::UserOption* RLUserControl::getOptionByKey(const std::string& key)
             if (opt.key == key) return &opt;
       }
       return nullptr;
+}
+
+void RLUserControl::setOptionState(const std::string& key, bool desired, bool updatePersisted) {
+      auto opt = getOptionByKey(key);
+      if (!opt) return;
+      opt->desired = desired;
+      if (updatePersisted) opt->persisted = desired;
+      if (opt->button) {
+            opt->button->updateBGImage(desired ? "GJ_button_02.png" : "GJ_button_01.png");
+      }
+      // update the global apply button enabled state
+      bool differs = false;
+      for (auto& o : m_userOptions) {
+            if (o.desired != o.persisted) {
+                  differs = true;
+                  break;
+            }
+      }
+      if (m_applyButton) m_applyButton->setEnabled(differs);
+}
+
+void RLUserControl::setOptionEnabled(const std::string& key, bool enabled) {
+      auto opt = getOptionByKey(key);
+      if (!opt) return;
+      if (opt->item) opt->item->setEnabled(enabled);
+}
+
+void RLUserControl::setAllOptionsEnabled(bool enabled) {
+      for (auto& opt : m_userOptions)
+            if (opt.item) opt.item->setEnabled(enabled);
 }

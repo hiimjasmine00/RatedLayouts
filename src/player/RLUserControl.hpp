@@ -32,6 +32,11 @@ class RLUserControl : public geode::Popup<> {
       void onApplyChanges(CCObject* sender);
       void onToggleChanged(CCObject* sender);
       void onOptionClicked(CCObject* sender);
+
       UserOption* getOptionByKey(const std::string& key);
+      void setOptionState(const std::string& key, bool desired, bool updatePersisted = false);
+      void setOptionEnabled(const std::string& key, bool enabled);
+      void setAllOptionsEnabled(bool enabled);
+      
       bool setup() override;
 };
