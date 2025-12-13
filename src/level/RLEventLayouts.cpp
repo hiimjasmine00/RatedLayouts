@@ -152,7 +152,7 @@ bool RLEventLayouts::setup() {
             playButton->setAnchorPoint({0.5f, 0.5f});
             playMenu->addChild(playButton);
             container->addChild(playMenu, 2);
-            // add spinner for play button
+            // add spinner for play button (default visible)
             auto spinner = LoadingSpinner::create(32.f);
             spinner->setPosition({cellW - 32.f, cellH / 2 + 2.5f});
             spinner->setVisible(true);
@@ -265,7 +265,10 @@ bool RLEventLayouts::setup() {
                               if (glm->hasDownloadedLevel(levelId)) {
                                     sec->playButton->setEnabled(true);
                                     sec->playButton->setVisible(true);
-                                    if (sec->spinner) sec->spinner->setVisible(false);
+                                    if (sec->spinner) {
+                                          sec->spinner->setVisible(false);
+                                          if (sec->playButton) sec->playButton->setVisible(true);
+                                    }
                                     // clear any pending flags
                                     selfRef->m_backgroundDownloads.erase(levelId);
                                     selfRef->m_pendingDownloadsPlay.erase(levelId);
@@ -276,12 +279,18 @@ bool RLEventLayouts::setup() {
                                     if (selfRef->m_backgroundDownloads.find(levelId) != selfRef->m_backgroundDownloads.end()) {
                                           sec->playButton->setEnabled(false);
                                           sec->playButton->setVisible(false);
-                                          if (sec->spinner) sec->spinner->setVisible(true);
+                                          if (sec->spinner) {
+                                                sec->spinner->setVisible(true);
+                                                if (sec->playButton) sec->playButton->setVisible(false);
+                                          }
                                     } else {
                                           // otherwise, show play button enabled by default
                                           sec->playButton->setEnabled(true);
                                           sec->playButton->setVisible(true);
-                                          if (sec->spinner) sec->spinner->setVisible(false);
+                                          if (sec->spinner) {
+                                                sec->spinner->setVisible(false);
+                                                if (sec->playButton) sec->playButton->setVisible(true);
+                                          }
                                     }
                               }
                         }
@@ -319,6 +328,7 @@ bool RLEventLayouts::setup() {
                                                 for (int j = 0; j < 3; ++j) {
                                                       if (selfRef->m_sections[j].levelId == id && selfRef->m_sections[j].spinner) {
                                                             selfRef->m_sections[j].spinner->setVisible(true);
+                                                            if (selfRef->m_sections[j].playButton) selfRef->m_sections[j].playButton->setVisible(false);
                                                             selfRef->m_pendingStartTimes[id] = std::chrono::steady_clock::now();
                                                             break;
                                                       }
@@ -363,10 +373,16 @@ void RLEventLayouts::update(float dt) {
                               level = glm->getMainLevel(id, false);
                         }
                         if (level && level->m_levelID == id) {
+                              if (level->m_levelString.empty()) {
+                                    log::warn("Level {} reported downloaded but levelString empty; waiting...", id);
+                                    continue;
+                              }
                               for (int i = 0; i < 3; ++i) {
                                     if (m_sections[i].levelId == id && m_sections[i].playButton) {
                                           m_sections[i].playButton->setEnabled(true);
-                                          if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
+                                          if (m_sections[i].spinner) {
+                                                restoreUIForLevel(id);
+                                          }
                                           break;
                                     }
                               }
@@ -429,16 +445,22 @@ void RLEventLayouts::update(float dt) {
                         for (int i = 0; i < 3; ++i) {
                               if (m_sections[i].levelId == id) {
                                     if (m_sections[i].playButton) m_sections[i].playButton->setEnabled(true);
-                                    if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
+                                    if (m_sections[i].spinner) {
+                                          m_sections[i].spinner->setVisible(false);
+                                          if (m_sections[i].playButton) m_sections[i].playButton->setVisible(true);
+                                    }
                                     break;
                               }
                         }
                         Notification::create("Download timed out", NotificationIcon::Warning)->show();
                   } else {
-                        // background download timed out - just clear spinner
+                        // background download timed out
                         for (int i = 0; i < 3; ++i) {
                               if (m_sections[i].levelId == id) {
-                                    if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
+                                    if (m_sections[i].spinner) {
+                                          m_sections[i].spinner->setVisible(false);
+                                          if (m_sections[i].playButton) m_sections[i].playButton->setVisible(true);
+                                    }
                                     break;
                               }
                         }
@@ -450,13 +472,7 @@ void RLEventLayouts::update(float dt) {
 void RLEventLayouts::onDownloadCompleted(int id) {
       m_backgroundDownloads.erase(id);
       m_pendingStartTimes.erase(id);
-      for (int i = 0; i < 3; ++i) {
-            if (m_sections[i].levelId == id) {
-                  if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
-                  if (m_sections[i].playButton) m_sections[i].playButton->setEnabled(true);
-                  break;
-            }
-      }
+      restoreUIForLevel(id);
 }
 
 void RLEventLayouts::onDownloadFailed(int id) {
@@ -465,21 +481,23 @@ void RLEventLayouts::onDownloadFailed(int id) {
             m_pendingDownloadsPlay.erase(id);
             m_loadedLevels.erase(id);
             m_pendingStartTimes.erase(id);
-            for (int i = 0; i < 3; ++i) {
-                  if (m_sections[i].levelId == id) {
-                        if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
-                        if (m_sections[i].playButton) m_sections[i].playButton->setEnabled(true);
-                        break;
-                  }
-            }
+            restoreUIForLevel(id);
             Notification::create("Download failed", NotificationIcon::Error)->show();
       } else {
-            // background download failed - just hide spinner
-            for (int i = 0; i < 3; ++i) {
-                  if (m_sections[i].levelId == id) {
-                        if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
-                        break;
+            // background download failed - just hide spinner and restore play button
+            restoreUIForLevel(id);
+      }
+}
+
+void RLEventLayouts::restoreUIForLevel(int id) {
+      for (int i = 0; i < 3; ++i) {
+            if (m_sections[i].levelId == id) {
+                  if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
+                  if (m_sections[i].playButton) {
+                        m_sections[i].playButton->setVisible(true);
+                        m_sections[i].playButton->setEnabled(true);
                   }
+                  break;
             }
       }
 }
@@ -569,6 +587,7 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
             if (level && level->m_levelID == levelId) {
                   // If already downloaded, go directly to LevelInfoLayer
                   if (glm->hasDownloadedLevel(levelId)) {
+                        restoreUIForLevel(levelId);
                         auto scene = LevelInfoLayer::scene(level, true);
                         auto transitionFade = CCTransitionFade::create(0.5f, scene);
                         CCDirector::sharedDirector()->pushScene(transitionFade);
@@ -581,6 +600,7 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
                         for (int i = 0; i < 3; ++i) {
                               if (m_sections[i].levelId == levelId && m_sections[i].spinner) {
                                     m_sections[i].spinner->setVisible(true);
+                                    if (m_sections[i].playButton) m_sections[i].playButton->setVisible(false);
                                     break;
                               }
                         }
@@ -607,7 +627,10 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
             for (int i = 0; i < 3; ++i) {
                   if (m_sections[i].levelId == levelId && m_sections[i].playButton) {
                         m_sections[i].playButton->setEnabled(false);
-                        if (m_sections[i].spinner) m_sections[i].spinner->setVisible(true);
+                        if (m_sections[i].spinner) {
+                              m_sections[i].spinner->setVisible(true);
+                              if (m_sections[i].playButton) m_sections[i].playButton->setVisible(false);
+                        }
                         break;
                   }
             }
@@ -624,8 +647,7 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
                         if (glm->hasDownloadedLevel(levelId)) {
                               for (int i = 0; i < 3; ++i) {
                                     if (m_sections[i].levelId == levelId && m_sections[i].playButton) {
-                                          m_sections[i].playButton->setEnabled(true);
-                                          if (m_sections[i].spinner) m_sections[i].spinner->setVisible(false);
+                                          restoreUIForLevel(levelId);
                                           break;
                                     }
                               }
@@ -640,6 +662,7 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
                               for (int j = 0; j < 3; ++j) {
                                     if (m_sections[j].levelId == levelId && m_sections[j].spinner) {
                                           m_sections[j].spinner->setVisible(true);
+                                          if (m_sections[j].playButton) m_sections[j].playButton->setVisible(false);
                                           break;
                                     }
                               }
@@ -662,18 +685,28 @@ void RLEventLayouts::onPlayEvent(CCObject* sender) {
                                     // enable only if level already downloaded else keep disabled
                                     if (glm->hasDownloadedLevel(levelId)) {
                                           selfRef->m_sections[i].playButton->setEnabled(true);
-                                          if (selfRef->m_sections[i].spinner) selfRef->m_sections[i].spinner->setVisible(false);
+                                          if (selfRef->m_sections[i].spinner) {
+                                                selfRef->m_sections[i].spinner->setVisible(false);
+                                                if (selfRef->m_sections[i].playButton) selfRef->m_sections[i].playButton->setVisible(true);
+                                          }
                                     }
                                     break;
                               }
                         }
-                        // if the level has been downloaded already, clear pending and open
+                        // if the level has been downloaded already, ensure levelString present before open
                         if (glm->hasDownloadedLevel(levelId)) {
-                              selfRef->m_pendingDownloadsPlay.erase(levelId);
-                              auto scene = LevelInfoLayer::scene(lvl, true);
-                              auto transitionFade = CCTransitionFade::create(0.5f, scene);
-                              CCDirector::sharedDirector()->pushScene(transitionFade);
-                              selfRef->m_loadedLevels.erase(levelId);
+                              auto mainLevel = glm->getMainLevel(levelId, false);
+                              if (mainLevel && !mainLevel->m_levelString.empty()) {
+                                    // restore UI before opening
+                                    selfRef->restoreUIForLevel(levelId);
+                                    selfRef->m_pendingDownloadsPlay.erase(levelId);
+                                    auto scene = LevelInfoLayer::scene(lvl, true);
+                                    auto transitionFade = CCTransitionFade::create(0.5f, scene);
+                                    CCDirector::sharedDirector()->pushScene(transitionFade);
+                                    selfRef->m_loadedLevels.erase(levelId);
+                              } else {
+                                    log::warn("Level {} downloaded but levelString not ready; will wait", levelId);
+                              }
                         } else {
                               // ensure download is started for this level
                               if (!glm->hasDownloadedLevel(levelId)) glm->downloadLevel(levelId, false);

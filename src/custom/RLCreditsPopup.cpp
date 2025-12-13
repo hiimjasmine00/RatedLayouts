@@ -25,6 +25,14 @@ bool RLCreditsPopup::setup() {
       addListBorders(m_mainLayer, {m_mainLayer->getContentSize().width / 2, m_mainLayer->getContentSize().height / 2 - 5.f}, {340.f, 195.f});
       m_scrollLayer = scrollLayer;
 
+      // info button
+      auto infoBtn = CCMenuItemSpriteExtra::create(
+          CCSprite::createWithSpriteFrameName("GJ_infoIcon_001.png"),
+          this,
+          menu_selector(RLCreditsPopup::onInfo));
+      infoBtn->setPosition({m_mainLayer->getContentSize().width - 25.f, m_mainLayer->getContentSize().height - 25.f});
+      m_buttonMenu->addChild(infoBtn);
+
       // create spinner
       auto contentLayer = m_scrollLayer->m_contentLayer;
       if (contentLayer) {
@@ -194,4 +202,18 @@ void RLCreditsPopup::onAccountClicked(CCObject* sender) {
       auto button = static_cast<CCMenuItem*>(sender);
       int accountId = button->getTag();
       ProfilePage::create(accountId, false)->show();
+}
+
+void RLCreditsPopup::onInfo(CCObject* sender) {
+      MDPopup::create(
+          "How to become a Layout Admin/Moderator",
+          "Firstly, you need to be active on the <cl>Rated Layouts Discord server</c> and actively show interest in helping with the mod. <cl>Rated Layouts</c> don't promote any moderators/admins outside the Discord Server due to various reason and to keep things in track.\n\n"
+          "### <cr>Begging for moderator/admin will lower your chances!</c>\n\n"
+          "All decision on who becomes a <cg>Layout Admin/Moderator</c> is up to <cf>ArcticWoof</c>.\n\n"
+          "There will be an <cy>application</c> that will be posted on the <cl>Discord server</c> for more information!\n\n"
+          "If you do show that you have interest in helping with the mod, you may be contacted by <cf>ArcticWoof</c>."
+          "\r\n\r\n---\r\n\r\n"
+          "We currenly looking for those who has good knowledge in <cb>fun Gameplay and Layout Designs</c> to become <cg>Layout Moderators/Admins</c> or if other moderators/admins has shown interest in you, you may get the chance to get promoted!\n\n",
+          "OK")
+          ->show();
 }

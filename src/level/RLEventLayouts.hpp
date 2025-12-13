@@ -10,6 +10,7 @@ class RLEventLayouts : public geode::Popup<> {
       ~RLEventLayouts();
       void onDownloadCompleted(int id);
       void onDownloadFailed(int id);
+      void restoreUIForLevel(int id);
 
      private:
       bool setup() override;
