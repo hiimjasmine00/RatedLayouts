@@ -1,15 +1,17 @@
 # v0.2.3-beta.1
 
-- **Added Difficulty Stats!** You can view your difficulty stats in your profile page, including the number of levels you've beaten for each difficulty.
+- **Added Difficulty Stats!** You can view your difficulty stats in your profile page, including the number of levels you've beaten for each difficulty. (You can view them by clicking the Blueprint Stars icon in the profile page.)
 - **Added User Comment Glow!** You can easily identify comments from users using Rated Layouts mod.
 - **Added Event Layouts!** Play daily, weekly, and monthly rated layouts curated by the Rated Layouts team and Admins.
+- **Added Epic Rating!** Levels can now be rated as Epic by Admins, giving them a special status and recognition.
+- **Added Epic Search Filter!** You can now filter levels by Epic rating in the Custom Search.
 - Tweaks for Search Layer.
 
 # v0.2.2-beta.1
 
 - **Added Custom Search!** You can now search for Rated Layout Levels using various filters such as <cr>difficulty</c>, <co>level type</co> and more!
 - Removed the Level Search Quick Menu from the Search Tab in favor of the custom search layer in the Rated Layouts Creator Layer.
-- Fixed the sprite not showing the correct star icon in the end level layer when claiming stars. 
+- Fixed the sprite not showing the correct star icon in the end level layer when claiming stars.
 
 # v0.2.1-beta.1
 
