@@ -331,11 +331,13 @@ void RLCreatorLayer::onInfoButton(CCObject* sender) {
           "About Rated Layouts",
           "## <cl>Rated Layouts</cl> is a community-run rating system focusing on fun gameplay in classic layout levels.\n\n"
           "### Each of the buttons on this screen lets you browse different categories of rated layouts:\n\n"
-          "<cg>**Featured Layouts**</cg>: Featured layouts that showcase fun gameplay and visuals. Each featured levels are ranked based of their featured score.\n\n"
-          "<cg>**Newly Rated**</cg>: The latest layouts that have been rated by the Layout Admins.\n\n"
-          "<cg>**Sent Layouts**</cg>: Suggested or sent layouts by the Layout Moderators.\n\n"
-          "You can also view the <cg>**Leaderboard**</cg> to see top-rated layout creators and players!\n\n"
-          "### Join the <cb>[Rated Layout Discord](https://discord.gg/jBf2wfBgVT)</cb> server for more information and to submit your layouts for rating.\n\n",
+          "<cg>**Featured Layouts**</c>: Featured layouts that showcase fun gameplay and visuals. Each featured levels are ranked based of their featured score.\n\n"
+          "<cg>**Leaderboard**</c>: The top-rated players ranked by blueprint stars and creator points.\n\n"
+          "<cg>**Newly Rated**</c>: The latest layouts that have been rated by the Layout Admins.\n\n"
+          "<cg>**Sent Layouts**</c>: Suggested or sent layouts by the Layout Moderators.\n\n"
+          "<cg>**Search Layouts**</c>: Search for rated layouts by their level ID.\n\n"
+          "<cg>**Event Layouts**</c>: Limited-time event layouts that you can play special rated layout levels\n\n"
+          "### Join the <cb>[Rated Layout Discord](https://discord.gg/jBf2wfBgVT)</c> server for more information and to submit your layouts for rating.\n\n",
           "OK")
           ->show();
 }
