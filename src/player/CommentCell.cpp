@@ -118,7 +118,7 @@ class $modify(RLCommentCell, CommentCell) {
                   log::debug("using comment emoji text area, applying color");
                   if (auto label = typeinfo_cast<CCLabelBMFont*>(emojiTextArea)) {
                         label->setColor(color);
-                  }
+                  } // cant bothered adding colors support for non-compact mode for the emojis mod thingy
             }
             // apply the color to the comment text label
             else if (auto commentTextLabel = typeinfo_cast<CCLabelBMFont*>(
