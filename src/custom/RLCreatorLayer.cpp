@@ -6,6 +6,7 @@
 #include <random>
 
 #include "../level/RLEventLayouts.hpp"
+#include "RLAnnoucementPopup.hpp"
 #include "RLCreditsPopup.hpp"
 #include "RLLeaderboardLayer.hpp"
 #include "RLSearchLayer.hpp"
@@ -79,8 +80,8 @@ bool RLCreatorLayer::init() {
       mainMenu->addChild(leaderboardItem);
 
       // gauntlet coming soon
-      auto gauntletSpr = CCSpriteGrayscale::create("RL_gauntlets01.png"_spr);
-      if (!gauntletSpr) gauntletSpr = CCSpriteGrayscale::create("RL_gauntlets01.png"_spr);
+      auto gauntletSpr = CCSprite::create("RL_gauntlets01.png"_spr);
+      if (!gauntletSpr) gauntletSpr = CCSprite::create("RL_gauntlets01.png"_spr);
       auto gauntletItem = CCMenuItemSpriteExtra::create(
           gauntletSpr, this, menu_selector(RLCreatorLayer::onLayoutGauntlets));
       gauntletItem->setID("gauntlet-button");
@@ -222,70 +223,8 @@ void RLCreatorLayer::onSettingsButton(CCObject* sender) {
 }
 
 void RLCreatorLayer::onLayoutGauntlets(CCObject* sender) {
-      auto rng = rand() % 5;
-      DialogObject* dialogObj = nullptr;
-      // the yapp-a-ton
-      switch (rng) {
-            case 0:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "I think something is cooking up in this button... but it's a secret for now!",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-            case 1:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "Did I hear <cg>Layout Gauntlets</c>? That's interesting...",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-            case 2:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "<cg>Layout Gauntlets?</c> Hmm... I wonder what that could be.",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-            case 3:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "I've heard whispers about <cg>Layout Gauntlets</c>. <cl>Sounds exciting!</c>",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-            case 4:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "I wonder if <cg>Layout Gauntlets</c> will change the way we <cl>create layouts...</c>",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-            case 5:
-                  dialogObj = DialogObject::create(
-                      "Level Creator",
-                      "The idea of <cg>Layout Gauntlets</c> has me intrigued. <cl>Can't wait to see what it's all about!</c>",
-                      28,
-                      .8f,
-                      false,
-                      ccWHITE);
-                  break;
-      }
-      if (dialogObj) {
-            auto dialog = DialogLayer::createDialogLayer(dialogObj, nullptr, 2);
-            dialog->addToMainScene();
-            dialog->animateInRandomSide();
-      }
+      auto annoucement = RLAnnoucementPopup::create();
+      annoucement->show();
 }
 
 void RLCreatorLayer::onUnknownButton(CCObject* sender) {

@@ -1,10 +1,10 @@
 # Rated Layouts
 
-A <cl>new and standalone</c> Rating System that focus on rating <cb>Classic Layout Levels</c>!
+A <cl>community-run & standalone</c> Rating System that focus on rating <cb>Classic Layout Levels</c>!
 
 This mod intergretes with the current rating system and improved <cr>Demon Ratings</c> by providing a more accurate representation of a level's difficulty as well as introducing a new rating system specifically for classic layout levels.
 
-<cr>**Platformers and Official Rated Levels won't be included!**</c>
+<cr>**Official Rated Levels won't be included,</c> <co>but Layout Platformers will be coming soon!</c>**
 
 <co>**You can find the Rated Layouts by clicking the Blue star button at the bottom left of the Creator Layer or Level Search Layer!**</c>
 

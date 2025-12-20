@@ -1,8 +1,10 @@
 # v0.2.8-beta.1
 
-- Fixed issue where (Badge API)[mod:jouca.badgesapi] was set to the wrong recommended version
-- Removed (Demons In Between)[mod:hiimjustin000.demons_in_between] from the incompatible mods as it doesn't conflict at all.
-*Note: You can still have [More Difficulties](mod:uproxide.more_difficulties) enabled, it just shows a warning that it conflicts but you can still use both mods.*
+- **Added Layout Gauntlets Annoucement!** Be sure to check out the Layout Gauntlets Creator Contest!!
+- Fixed issue where [Badge API](mod:jouca.badgesapi) was set to the wrong recommended version
+- Removed [Demons In Between](mod:hiimjustin000.demons_in_between) from the incompatible mods as it doesn't conflict at all.
+
+###  _Note: You can still have [More Difficulties](mod:uproxide.more_difficulties) enabled, it just shows a warning that it conflicts but you can still use both mods._
 
 # v0.2.7-beta.1
 
