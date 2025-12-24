@@ -293,6 +293,7 @@ void ModRatePopup::onSubmitButton(CCObject* sender) {
       jsonBody["levelId"] = m_levelId;
       jsonBody["levelOwnerId"] = m_accountId;
       jsonBody["difficulty"] = m_selectedRating;
+      jsonBody["isPlat"] = m_level->isPlatformer();
       int featured = 0;
       if (m_isFeatured) {
             featured = 1;

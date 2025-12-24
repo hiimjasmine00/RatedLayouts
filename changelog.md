@@ -1,3 +1,7 @@
+# v0.3.0-beta.1
+
+- **Added Planet!** Collect Planets by completing Platformer Rated Layout Levels.
+
 # v0.2.9-beta.1
 
 - Tweaked the **Community Vote** UI. If you are a Layout Moderator or Admin, it's unlocked by default. Others has to meet the percentage requirements to access it.

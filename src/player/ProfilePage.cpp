@@ -2,7 +2,7 @@
 #include <Geode/modify/ProfilePage.hpp>
 #include <argon/argon.hpp>
 
-#include "RLStarsTotalPopup.hpp"
+#include "RLDifficultyTotalPopup.hpp"
 #include "RLUserControl.hpp"
 
 using namespace geode::prelude;
@@ -13,7 +13,7 @@ static std::string getUserRoleCachePath_ProfilePage() {
       return geode::utils::string::pathToString(saveDir / "user_role_cache.json");
 }
 
-static void cacheUserProfile_ProfilePage(int accountId, int role, int stars) {
+static void cacheUserProfile_ProfilePage(int accountId, int role, int stars, int planets) {
       auto saveDir = dirs::getModsSaveDir();
       auto createDirResult = utils::file::createDirectory(saveDir);
       if (!createDirResult) {
@@ -33,6 +33,7 @@ static void cacheUserProfile_ProfilePage(int accountId, int role, int stars) {
       matjson::Value obj = matjson::Value::object();
       obj["role"] = role;
       obj["stars"] = stars;
+      obj["planets"] = planets;
       root[fmt::format("{}", accountId)] = obj;
 
       auto jsonString = root.dump();
@@ -46,6 +47,7 @@ class $modify(RLProfilePage, ProfilePage) {
       struct Fields {
             CCLabelBMFont* blueprintStarsCount = nullptr;
             CCLabelBMFont* layoutPointsCount = nullptr;
+            CCLabelBMFont* planetsCount = nullptr;
             int role = 0;
             int accountId = 0;
       };
@@ -72,25 +74,22 @@ class $modify(RLProfilePage, ProfilePage) {
                   return;
             }
 
-            auto blueprintStarsContainer =
-                statsMenu->getChildByID("blueprint-stars-container");
-            auto layoutPointsContainer =
-                statsMenu->getChildByID("layout-points-container");
+            auto blueprintStarsContainer = statsMenu->getChildByID("blueprint-stars-container");
+            auto planetsContainer = statsMenu->getChildByID("planets-container");
+            auto layoutPointsContainer = statsMenu->getChildByID("layout-points-container");
             auto blueprintStars = statsMenu->getChildByID("blueprint-stars-icon");
-            auto layoutPoints =
-                statsMenu->getChildByID("layout-points-icon");
+            auto planetsIcon = statsMenu->getChildByID("planets-icon");
+            auto layoutPoints = statsMenu->getChildByID("layout-points-icon");
 
-            if (blueprintStarsContainer || layoutPointsContainer) {
-                  if (blueprintStarsContainer)
-                        blueprintStarsContainer->removeFromParent();
+            if (blueprintStarsContainer || layoutPointsContainer || planetsContainer) {
+                  if (blueprintStarsContainer) blueprintStarsContainer->removeFromParent();
+                  if (planetsContainer) planetsContainer->removeFromParent();
+                  if (planetsIcon) planetsIcon->removeFromParent();
                   if (blueprintStars) blueprintStars->removeFromParent();
-                  if (layoutPointsContainer)
-                        layoutPointsContainer->removeFromParent();
+                  if (layoutPointsContainer) layoutPointsContainer->removeFromParent();
                   if (layoutPoints) layoutPoints->removeFromParent();
-                  log::info("recreating blueprint stars and layout points containers");
+                  log::info("recreating containers");
             }
-
-            log::info("adding the blueprint stars stats");
 
             auto blueprintStarsCount =
                 CCLabelBMFont::create(numToString(0).c_str(), "bigFont.fnt");
@@ -211,13 +210,14 @@ class $modify(RLProfilePage, ProfilePage) {
                   int points = json["points"].asInt().unwrapOrDefault();
                   int stars = json["stars"].asInt().unwrapOrDefault();
                   int role = json["role"].asInt().unwrapOrDefault();
+                  int planets = json["planets"].asInt().unwrapOrDefault();
 
                   log::info("Profile data - points: {}, stars: {}", points, stars);
 
                   // store the values into the saved value
                   pageRef->m_fields->role = role;
 
-                  cacheUserProfile_ProfilePage(pageRef->m_fields->accountId, role, stars);
+                  cacheUserProfile_ProfilePage(pageRef->m_fields->accountId, role, stars, planets);
 
                   // existing stats containers, this is so hacky but wanted to keep it
                   // at the right side
@@ -276,6 +276,46 @@ class $modify(RLProfilePage, ProfilePage) {
                               statsMenu->addChild(btnMenu);
                         }
                   }
+
+                  // planets
+                  auto planetsCount = CCLabelBMFont::create(numToString(GameToolbox::pointsToString(planets)).c_str(), "bigFont.fnt");
+                  planetsCount->setID("label");
+                  planetsCount->setAnchorPoint({1.f, .5f});
+                  limitNodeSize(planetsCount, {planetsCount->getContentSize()}, .7f, .1f);
+
+                  // Ensure label fits inside max width (50.f)
+                  const float maxWidthPlanets = 50.f;
+                  float origPWidth = planetsCount->getContentSize().width;
+                  float currentPScale = planetsCount->getScaleX();
+                  float desiredPScale = std::min(currentPScale, maxWidthPlanets / std::max(1.0f, origPWidth));
+                  planetsCount->setScale(desiredPScale);
+
+                  auto planetsContainer = CCNode::create();
+                  float pWidth = origPWidth * planetsCount->getScaleX();
+                  if (pWidth > maxWidthPlanets) pWidth = maxWidthPlanets;
+                  planetsContainer->setContentSize({pWidth, 19.5f});
+                  planetsContainer->setID("planets-container");
+                  planetsContainer->addChildAtPosition(planetsCount, Anchor::Right);
+                  planetsContainer->setAnchorPoint({1.f, .5f});
+                  statsMenu->addChild(planetsContainer);
+
+                  // planets icon
+                  auto planetsSprite = CCSprite::create("RL_planetMed.png"_spr);
+                  if (planetsSprite) {
+                        planetsSprite->setScale(1.0f);
+                        auto planetsButton = CCMenuItemSpriteExtra::create(planetsSprite, pageRef, menu_selector(RLProfilePage::onPlanetsClicked));
+                        planetsButton->setID("planets-icon");
+                        if (auto statsMenuAsMenu = typeinfo_cast<CCMenu*>(statsMenu)) {
+                              statsMenuAsMenu->addChild(planetsButton);
+                        } else {
+                              auto btnMenu = CCMenu::create();
+                              btnMenu->setPosition({0, 0});
+                              btnMenu->addChild(planetsButton);
+                              statsMenu->addChild(btnMenu);
+                        }
+                  }
+
+                  pageRef->m_fields->planetsCount = planetsCount;
 
                   if (points > 0) {
                         auto layoutPointsCount =
@@ -344,6 +384,13 @@ class $modify(RLProfilePage, ProfilePage) {
             auto userControl = RLUserControl::create(accountId);
             userControl->show();
       }
+
+      void onPlanetsClicked(CCObject* sender) {
+            int accountId = m_fields->accountId;
+            auto popup = RLDifficultyTotalPopup::create(accountId, RLDifficultyTotalPopup::Mode::Planets);
+            if (popup) popup->show();
+      }
+
       // badge
       void loadPageFromUserInfo(GJUserScore* a2) {
             ProfilePage::loadPageFromUserInfo(a2);
@@ -427,7 +474,7 @@ class $modify(RLProfilePage, ProfilePage) {
       }
       void onBlueprintStars(CCObject* sender) {
             int accountId = m_fields->accountId;
-            auto popup = RLStarsTotalPopup::create(accountId);
+            auto popup = RLDifficultyTotalPopup::create(accountId);
             if (popup) popup->show();
       }
 };

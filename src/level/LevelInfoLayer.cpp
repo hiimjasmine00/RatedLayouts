@@ -113,7 +113,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   auto iconSprite = CCSprite::create("RL_starBig.png"_spr);
                   CCSprite* buttonSprite = nullptr;
 
-                  if (isPlatformer || starRatings != 0) {
+                  if (starRatings != 0) {
                         buttonSprite = CCSpriteGrayscale::create("RL_starBig.png"_spr);
                   } else {
                         buttonSprite = CCSprite::create("RL_starBig.png"_spr);
@@ -131,7 +131,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   // add an admin button
                   CCSprite* buttonSprite = nullptr;
 
-                  if (isPlatformer || starRatings != 0) {
+                  if (starRatings != 0) {
                         buttonSprite = CCSpriteGrayscale::create("RL_starBig.png"_spr);
                   } else {
                         buttonSprite = CCSprite::create("RL_starBig.png"_spr);
@@ -339,6 +339,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   jsonBody["attempts"] = attempts;
                   jsonBody["attemptTime"] = attemptTime;
 
+                  bool isPlat = false;
+                  if (layerRef && layerRef->m_level) {
+                        isPlat = layerRef->m_level->isPlatformer();
+                  }
+                  jsonBody["isPlat"] = isPlat;
+
                   auto submitReq = web::WebRequest();
                   submitReq.bodyJSON(jsonBody);
                   auto submitTask =
@@ -373,24 +379,38 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                   responseStars);
 
                         if (success) {
-                              int displayStars = responseStars - difficulty;
-                              log::info("Display stars: {} - {} = {}", responseStars, difficulty,
-                                        displayStars);
+                              bool isPlat = false;
+                              if (layerRef && layerRef->m_level) isPlat = layerRef->m_level->isPlatformer();
+
+                              int responsePlanets = 0;
+                              if (isPlat) {
+                                    responsePlanets = submitJson["planets"].asInt().unwrapOrDefault();
+                              }
+                              log::info("submitComplete values - stars: {}, planets: {}", responseStars, responsePlanets);
+                              int displayReward = (isPlat ? (responsePlanets - difficulty) : (responseStars - difficulty));
+
+                              // persist returned totals
+                              if (isPlat) {
+                                    Mod::get()->setSavedValue<int>("planets", responsePlanets);
+                              } else {
+                                    Mod::get()->setSavedValue<int>("stars", responseStars);
+                              }
+
+                              std::string medSprite = isPlat ? "RL_planetMed.png"_spr : "RL_starMed.png"_spr;
+                              std::string reward = isPlat ? "planets" : "stars";
 
                               if (!Mod::get()->getSettingValue<bool>("disableRewardAnimation")) {
                                     if (auto rewardLayer = CurrencyRewardLayer::create(
                                             0, difficulty, 0, 0, CurrencySpriteType::Star, 0,
                                             CurrencySpriteType::Star, 0, difficultySprite->getPosition(),
                                             CurrencyRewardType::Default, 0.0, 1.0)) {
-                                          rewardLayer->m_starsLabel->setString(
-                                              numToString(displayStars).c_str());
-                                          rewardLayer->m_stars = displayStars;
-                                          rewardLayer->m_starsSprite = CCSprite::create("RL_starMed.png"_spr);
+                                          rewardLayer->m_starsLabel->setString(numToString(displayReward).c_str());
+                                          rewardLayer->m_stars = displayReward;
+                                          rewardLayer->m_starsSprite = CCSprite::create(medSprite.c_str());
 
-                                          if (auto node =
-                                                  rewardLayer->m_mainNode->getChildByType<CCSprite*>(0)) {
+                                          if (auto node = rewardLayer->m_mainNode->getChildByType<CCSprite*>(0)) {
                                                 node->setDisplayFrame(
-                                                    CCSprite::create("RL_starMed.png"_spr)->displayFrame());
+                                                    CCSprite::create(medSprite.c_str())->displayFrame());
                                                 node->setScale(1.f);
                                           }
 
@@ -400,9 +420,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                                     }
                               } else {
                                     log::info("Reward animation disabled");
-                                    Notification::create("Received " +
-                                                             numToString(difficulty) + " stars!",
-                                                         CCSprite::create("RL_starMed.png"_spr), 2.f)
+                                    Notification::create("Received " + numToString(displayReward) + " " + reward + "!",
+                                                         CCSprite::create(medSprite.c_str()), 2.f)
                                         ->show();
                                     FMODAudioEngine::sharedEngine()->playEffect(
                                         // @geode-ignore(unknown-resource)
@@ -475,21 +494,23 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   auto sprite = static_cast<GJDifficultySprite*>(difficultySprite2);
                   sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Long);
 
+                  // Remove existing icon
                   auto existingStarIcon = difficultySprite2->getChildByID("rl-star-icon");
-                  CCSprite* starIcon = nullptr;
-                  bool isFirstTime = !existingStarIcon;
-
-                  if (!existingStarIcon) {
-                        // star icon
-                        starIcon = CCSprite::create("RL_starSmall.png"_spr);
-                        starIcon->setPosition(
-                            {difficultySprite2->getContentSize().width / 2 + 7, -7});
-                        starIcon->setScale(0.75f);
-                        starIcon->setID("rl-star-icon");
-                        difficultySprite2->addChild(starIcon);
-                  } else {
-                        starIcon = static_cast<CCSprite*>(existingStarIcon);
+                  if (existingStarIcon) {
+                        existingStarIcon->removeFromParent();
                   }
+
+                  CCSprite* starIcon = nullptr;
+                  // Choose icon based on platformer flag: planets for platformer levels
+                  if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
+                        starIcon = CCSprite::create("RL_planetSmall.png"_spr);
+                        if (!starIcon) starIcon = CCSprite::create("RL_planetMed.png"_spr);
+                  }
+                  if (!starIcon) starIcon = CCSprite::create("RL_starSmall.png"_spr);
+                  starIcon->setPosition({difficultySprite2->getContentSize().width / 2 + 7, -7});
+                  starIcon->setScale(0.75f);
+                  starIcon->setID("rl-star-icon");
+                  difficultySprite2->addChild(starIcon);
 
                   // star value label (update or create)
                   auto existingLabel = difficultySprite2->getChildByID("rl-star-label");
@@ -510,9 +531,12 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         difficultySprite2->addChild(starLabelValue);
                   }
 
-                  if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(
-                          layerRef->m_level->m_levelID)) {
-                        starLabelValue->setColor({0, 150, 255});  // cyan
+                  if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(layerRef->m_level->m_levelID)) {
+                        if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
+                              starLabelValue->setColor({204, 101, 0});  // orange for planets
+                        } else {
+                              starLabelValue->setColor({0, 150, 255});  // cyan for stars
+                        }
                   }
 
                   auto coinIcon1 = layerRef->getChildByID("coin-icon-1");
@@ -805,7 +829,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                         sprite->setPositionY(sprite->getPositionY() + 10);
                   }
 
-                  auto starIcon = CCSprite::create("RL_starSmall.png"_spr);
+                  // Choose icon based on platformer flag: planets for platformer levels
+                  CCSprite* starIcon = nullptr;
+                  if (layerRef && layerRef->m_level && layerRef->m_level->isPlatformer()) {
+                        starIcon = CCSprite::create("RL_planetSmall.png"_spr);
+                        if (!starIcon) starIcon = CCSprite::create("RL_planetMed.png"_spr);
+                  }
+                  if (!starIcon) starIcon = CCSprite::create("RL_starSmall.png"_spr);
                   starIcon->setScale(0.75f);
                   starIcon->setID("rl-star-icon");
                   sprite->addChild(starIcon);
@@ -851,10 +881,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             int starRatings = this->m_level->m_stars;
             bool isPlatformer = this->m_level->isPlatformer();
 
-            if (isPlatformer || starRatings != 0) {
+            if (starRatings != 0) {
                   FLAlertLayer::create("Action Unavailable",
                                        "You cannot perform this action on "
-                                       "<cy>platformer or rated levels</c>.",
+                                       "<cy>officially rated levels</c>.",
                                        "OK")
                       ->show();
                   return;
@@ -880,10 +910,10 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
             int starRatings = this->m_level->m_stars;
             bool isPlatformer = this->m_level->isPlatformer();
 
-            if (isPlatformer || starRatings != 0) {
+            if (starRatings != 0) {
                   FLAlertLayer::create("Action Unavailable",
                                        "You cannot perform this action on "
-                                       "<cy>platformer or rated levels</c>.",
+                                       "<cy>officially rated levels</c>.",
                                        "OK")
                       ->show();
                   return;
@@ -953,14 +983,17 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                               float labelY = starIcon->getPositionY();
                               log::info("Repositioning star label to ({}, {})", labelX, labelY);
                               starLabel->setPosition({labelX, labelY});
-                              if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(
-                                      this->m_level->m_levelID)) {
-                                    starLabel->setColor({0, 150, 255});  // cyan
+                              if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(this->m_level->m_levelID)) {
+                                    if (this->m_level && this->m_level->isPlatformer()) {
+                                          starLabel->setColor({255, 160, 0});  // orange
+                                    } else {
+                                          starLabel->setColor({0, 150, 255});  // cyan
+                                    }
                               }
                         }
                   }
             }
-      }
+      };
 
       void requestStatus(int accountId) {
             // argon my beloved <3

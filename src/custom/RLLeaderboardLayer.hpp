@@ -10,6 +10,7 @@ class RLLeaderboardLayer : public CCLayer {
       ScrollLayer* m_scrollLayer;
       LoadingSpinner* m_spinner;
       TabButton* m_starsTab;
+      TabButton* m_planetsTab;
       TabButton* m_creatorTab;
 
       bool init();

@@ -85,16 +85,25 @@ bool RLLeaderboardLayer::init() {
           menu_selector(RLLeaderboardLayer::onLeaderboardTypeButton));
       starsTab->setTag(1);
       starsTab->toggle(true);
-      starsTab->setPosition({winSize.width / 2 - 80, winSize.height - 27});
+      starsTab->setPosition({winSize.width / 2 - 120, winSize.height - 27});
       typeMenu->addChild(starsTab);
       m_starsTab = starsTab;
+
+      auto planetsTab = TabButton::create(
+          "Top Planets", this,
+          menu_selector(RLLeaderboardLayer::onLeaderboardTypeButton));
+      planetsTab->setTag(3);
+      planetsTab->toggle(false);
+      planetsTab->setPosition({winSize.width / 2, winSize.height - 27});
+      typeMenu->addChild(planetsTab);
+      m_planetsTab = planetsTab;
 
       auto creatorTab = TabButton::create(
           "Top Creator", this,
           menu_selector(RLLeaderboardLayer::onLeaderboardTypeButton));
       creatorTab->setTag(2);
       creatorTab->toggle(false);
-      creatorTab->setPosition({winSize.width / 2 + 80, winSize.height - 27});
+      creatorTab->setPosition({winSize.width / 2 + 120, winSize.height - 27});
       typeMenu->addChild(creatorTab);
       m_creatorTab = creatorTab;
 
@@ -209,9 +218,15 @@ void RLLeaderboardLayer::onLeaderboardTypeButton(CCObject* sender) {
 
       if (type == 1 && !m_starsTab->isToggled()) {
             m_starsTab->toggle(true);
+            m_planetsTab->toggle(false);
+            m_creatorTab->toggle(false);
+      } else if (type == 3 && !m_planetsTab->isToggled()) {
+            m_starsTab->toggle(false);
+            m_planetsTab->toggle(true);
             m_creatorTab->toggle(false);
       } else if (type == 2 && !m_creatorTab->isToggled()) {
             m_starsTab->toggle(false);
+            m_planetsTab->toggle(false);
             m_creatorTab->toggle(true);
       }
 
@@ -367,7 +382,8 @@ void RLLeaderboardLayer::populateLeaderboard(
             cell->addChild(scoreLabelText);
 
             const bool isStar = m_starsTab->isToggled();
-            const char* iconName = isStar ? "RL_starMed.png"_spr : "RL_blueprintPoint01.png"_spr;
+            const bool isPlanets = m_planetsTab && m_planetsTab->isToggled();
+            const char* iconName = isStar ? "RL_starMed.png"_spr : (isPlanets ? "RL_planetMed.png"_spr : "RL_blueprintPoint01.png"_spr);
             auto iconSprite = CCSprite::create(iconName);
             iconSprite->setScale(0.65f);
             iconSprite->setPosition({325.f, 20.f});

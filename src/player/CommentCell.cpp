@@ -179,7 +179,7 @@ class $modify(RLCommentCell, CommentCell) {
             log::debug("Fetching role for comment user ID: {}", accountId);
             auto getTask = web::WebRequest()
                                .param("accountId", accountId)
-                               .get("https://gdrate.arcticwoof.xyz/commentProfile");
+                               .get("https://gdrate.arcticwoof.xyz/profile");
 
             Ref<RLCommentCell> cellRef = this;  // commentcell ref
 

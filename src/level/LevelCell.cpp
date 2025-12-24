@@ -207,8 +207,13 @@ class $modify(LevelCell) {
             auto sprite = static_cast<GJDifficultySprite*>(difficultySprite);
             sprite->updateDifficultyFrame(difficultyLevel, GJDifficultyName::Short);
 
-            // star icon
-            auto newStarIcon = CCSprite::create("RL_starSmall.png"_spr);
+            // star or planet icon (planet for platformer levels)
+            CCSprite* newStarIcon = nullptr;
+            if (this->m_level && this->m_level->isPlatformer()) {
+                  newStarIcon = CCSprite::create("RL_planetSmall.png"_spr);
+                  if (!newStarIcon) newStarIcon = CCSprite::create("RL_planetMed.png"_spr);
+            }
+            if (!newStarIcon) newStarIcon = CCSprite::create("RL_starSmall.png"_spr);
             if (newStarIcon) {
                   newStarIcon->setPosition({difficultySprite->getContentSize().width / 2 + 8, -8});
                   newStarIcon->setScale(0.75f);
@@ -216,74 +221,77 @@ class $modify(LevelCell) {
                   difficultySprite->addChild(newStarIcon);
 
                   // star value label
-                  auto starLabelValue =
+                  auto rewardLabelValue =
                       CCLabelBMFont::create(numToString(difficulty).c_str(), "bigFont.fnt");
-                  if (starLabelValue) {
-                        starLabelValue->setPosition(
+                  if (rewardLabelValue) {
+                        rewardLabelValue->setPosition(
                             {newStarIcon->getPositionX() - 7, newStarIcon->getPositionY()});
-                        starLabelValue->setScale(0.4f);
-                        starLabelValue->setAnchorPoint({1.0f, 0.5f});
-                        starLabelValue->setAlignment(kCCTextAlignmentRight);
-                        starLabelValue->setID("rl-star-label");
+                        rewardLabelValue->setScale(0.4f);
+                        rewardLabelValue->setAnchorPoint({1.0f, 0.5f});
+                        rewardLabelValue->setAlignment(kCCTextAlignmentRight);
+                        rewardLabelValue->setID("rl-star-label");
 
-                        if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(
-                                m_level->m_levelID)) {
-                              starLabelValue->setColor({0, 150, 255});  // cyan
-                        }
-                        difficultySprite->addChild(starLabelValue);
-                  }
-            }
-
-            // Update featured coin visibility
-            {
-                  auto featuredCoin = difficultySprite->getChildByID("featured-coin");
-                  auto epicFeaturedCoin = difficultySprite->getChildByID("epic-featured-coin");
-                  if (featured == 1) {
-                        if (epicFeaturedCoin) epicFeaturedCoin->removeFromParent();
-                        if (!featuredCoin) {
-                              auto newFeaturedCoin = CCSprite::create("rlfeaturedCoin.png"_spr);
-                              if (newFeaturedCoin) {
-                                    newFeaturedCoin->setPosition({difficultySprite->getContentSize().width / 2,
-                                                                  difficultySprite->getContentSize().height / 2});
-                                    newFeaturedCoin->setID("featured-coin");
-                                    difficultySprite->addChild(newFeaturedCoin, -1);
+                        if (GameStatsManager::sharedState()->hasCompletedOnlineLevel(m_level->m_levelID)) {
+                              if (this->m_level && this->m_level->isPlatformer()) {
+                                    rewardLabelValue->setColor({255, 160, 0});  // orange for planets
+                              } else {
+                                    rewardLabelValue->setColor({0, 150, 255});  // cyan for stars
                               }
+                              difficultySprite->addChild(rewardLabelValue);
                         }
-                  } else if (featured == 2) {
-                        if (featuredCoin) featuredCoin->removeFromParent();
-                        if (!epicFeaturedCoin) {
-                              auto newEpicCoin = CCSprite::create("rlepicFeaturedCoin.png"_spr);
-                              if (newEpicCoin) {
-                                    newEpicCoin->setPosition({difficultySprite->getContentSize().width / 2,
-                                                              difficultySprite->getContentSize().height / 2});
-                                    newEpicCoin->setID("epic-featured-coin");
-                                    difficultySprite->addChild(newEpicCoin, -1);
-                              }
-                        }
-                  } else {
-                        if (featuredCoin) featuredCoin->removeFromParent();
-                        if (epicFeaturedCoin) epicFeaturedCoin->removeFromParent();
                   }
-            }
 
-            // if not compacted and has at least a coin
-            auto coinContainer = m_mainLayer->getChildByID("difficulty-container");
-            if (coinContainer && !m_compactView) {
-                  auto coinIcon1 = coinContainer->getChildByID("coin-icon-1");
-                  auto coinIcon2 = coinContainer->getChildByID("coin-icon-2");
-                  auto coinIcon3 = coinContainer->getChildByID("coin-icon-3");
-                  if (coinIcon1 || coinIcon2 || coinIcon3) {
-                        difficultySprite->setPositionY(difficultySprite->getPositionY() + 10);
+                  // Update featured coin visibility
+                  {
+                        auto featuredCoin = difficultySprite->getChildByID("featured-coin");
+                        auto epicFeaturedCoin = difficultySprite->getChildByID("epic-featured-coin");
+                        if (featured == 1) {
+                              if (epicFeaturedCoin) epicFeaturedCoin->removeFromParent();
+                              if (!featuredCoin) {
+                                    auto newFeaturedCoin = CCSprite::create("rlfeaturedCoin.png"_spr);
+                                    if (newFeaturedCoin) {
+                                          newFeaturedCoin->setPosition({difficultySprite->getContentSize().width / 2,
+                                                                        difficultySprite->getContentSize().height / 2});
+                                          newFeaturedCoin->setID("featured-coin");
+                                          difficultySprite->addChild(newFeaturedCoin, -1);
+                                    }
+                              }
+                        } else if (featured == 2) {
+                              if (featuredCoin) featuredCoin->removeFromParent();
+                              if (!epicFeaturedCoin) {
+                                    auto newEpicCoin = CCSprite::create("rlepicFeaturedCoin.png"_spr);
+                                    if (newEpicCoin) {
+                                          newEpicCoin->setPosition({difficultySprite->getContentSize().width / 2,
+                                                                    difficultySprite->getContentSize().height / 2});
+                                          newEpicCoin->setID("epic-featured-coin");
+                                          difficultySprite->addChild(newEpicCoin, -1);
+                                    }
+                              }
+                        } else {
+                              if (featuredCoin) featuredCoin->removeFromParent();
+                              if (epicFeaturedCoin) epicFeaturedCoin->removeFromParent();
+                        }
                   }
-                  // doing the dumb coin move
-                  if (coinIcon1) {
-                        coinIcon1->setPositionY(coinIcon1->getPositionY() - 5);
-                  }
-                  if (coinIcon2) {
-                        coinIcon2->setPositionY(coinIcon2->getPositionY() - 5);
-                  }
-                  if (coinIcon3) {
-                        coinIcon3->setPositionY(coinIcon3->getPositionY() - 5);
+
+                  // if not compacted and has at least a coin
+                  auto coinContainer = m_mainLayer->getChildByID("difficulty-container");
+                  if (coinContainer && !m_compactView) {
+                        auto coinIcon1 = coinContainer->getChildByID("coin-icon-1");
+                        auto coinIcon2 = coinContainer->getChildByID("coin-icon-2");
+                        auto coinIcon3 = coinContainer->getChildByID("coin-icon-3");
+                        if (coinIcon1 || coinIcon2 || coinIcon3) {
+                              difficultySprite->setPositionY(difficultySprite->getPositionY() + 10);
+                        }
+                        // doing the dumb coin move
+                        if (coinIcon1) {
+                              coinIcon1->setPositionY(coinIcon1->getPositionY() - 5);
+                        }
+                        if (coinIcon2) {
+                              coinIcon2->setPositionY(coinIcon2->getPositionY() - 5);
+                        }
+                        if (coinIcon3) {
+                              coinIcon3->setPositionY(coinIcon3->getPositionY() - 5);
+                        }
                   }
             }
       }

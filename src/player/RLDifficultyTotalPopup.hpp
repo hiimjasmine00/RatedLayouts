@@ -4,13 +4,19 @@
 
 using namespace geode::prelude;
 
-class RLStarsTotalPopup : public geode::Popup<> {
+class RLDifficultyTotalPopup : public geode::Popup<> {
      public:
-      static RLStarsTotalPopup* create(int accountId);
+      enum class Mode {
+            Stars = 0,
+            Planets = 1,
+      };
+
+      static RLDifficultyTotalPopup* create(int accountId, Mode mode = Mode::Stars);
 
      private:
       bool setup() override;
       int m_accountId = 0;
+      Mode m_mode = Mode::Stars;
       CCLabelBMFont* m_resultsLabel = nullptr;
       CCLabelBMFont* m_rankLabel = nullptr;
       LoadingSpinner* m_spinner = nullptr;

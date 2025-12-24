@@ -77,10 +77,12 @@ class $modify(EndLevelLayer) {
                   // verification stuff
                   int attempts = 0;
                   int attemptTime = 0;
+                  bool isPlat = false;
                   if (auto playLayer = PlayLayer::get()) {
                         if (playLayer->m_level) {
                               attempts = playLayer->m_level->m_attempts;
                               attemptTime = playLayer->m_level->m_attemptTime;
+                              isPlat = playLayer->m_level->isPlatformer();
                         }
                   }
 
@@ -92,13 +94,13 @@ class $modify(EndLevelLayer) {
                   jsonBody["levelId"] = levelId;
                   jsonBody["attempts"] = attempts;
                   jsonBody["attemptTime"] = attemptTime;
+                  jsonBody["isPlat"] = isPlat;
 
                   auto submitReq = web::WebRequest();
                   submitReq.bodyJSON(jsonBody);
                   auto submitTask =
                       submitReq.post("https://gdrate.arcticwoof.xyz/submitComplete");
-                  submitTask.listen([endLayerRef, starReward,
-                                     levelId](web::WebResponse* submitResponse) {
+                  submitTask.listen([endLayerRef, starReward, levelId, isPlat](web::WebResponse* submitResponse) {
                         log::info("Received submitComplete response for level ID: {}",
                                   levelId);
 
@@ -134,6 +136,9 @@ class $modify(EndLevelLayer) {
                                         starReward, displayStars);
                               Mod::get()->setSavedValue<int>("stars", responseStars);
 
+                              // choose medium icon depending on whether the level is a platformer
+                              std::string medSprite = isPlat ? "RL_planetMed.png"_spr : "RL_starMed.png"_spr;
+
                               if (!endLayerRef || !endLayerRef->m_mainLayer) {
                                     log::warn("m_mainLayer is invalid");
                                     return;
@@ -141,7 +146,7 @@ class $modify(EndLevelLayer) {
 
                               // make the stars reward pop when u complete the level
                               auto bigStarSprite =
-                                  CCSprite::create("RL_starBig.png"_spr);
+                                  isPlat ? CCSprite::create("RL_planetBig.png"_spr) : CCSprite::create("RL_starBig.png"_spr);
                               bigStarSprite->setScale(1.f);
                               bigStarSprite->setPosition(
                                   {endLayerRef->m_mainLayer->getContentSize().width / 2 +
@@ -181,15 +186,13 @@ class $modify(EndLevelLayer) {
                                           rewardLayer->m_starsLabel->setString(
                                               numToString(displayStars).c_str());
                                           rewardLayer->m_stars = displayStars;
-                                          rewardLayer->m_starsSprite =
-                                              CCSprite::create("RL_starMed.png"_spr);
+                                          rewardLayer->m_starsSprite = CCSprite::create(medSprite.c_str());
 
                                           // Replace the main display sprite
                                           if (auto node = rewardLayer->m_mainNode
                                                               ->getChildByType<CCSprite*>(0)) {
                                                 node->setDisplayFrame(
-                                                    CCSprite::create("RL_starMed.png"_spr)
-                                                        ->displayFrame());
+                                                    CCSprite::create(medSprite.c_str())->displayFrame());
                                                 node->setScale(1.f);
                                           }
 
@@ -200,9 +203,10 @@ class $modify(EndLevelLayer) {
                                     }
                               } else {
                                     log::info("Reward animation disabled");
+                                    std::string reward = isPlat ? "planets" : "stars";
                                     Notification::create("Received " +
-                                                             numToString(starReward) + " stars!",
-                                                         CCSprite::create("RL_starMed.png"_spr), 2.f)
+                                                             numToString(starReward) + " " + reward + "!",
+                                                         CCSprite::create(medSprite.c_str()), 2.f)
                                         ->show();
                                     FMODAudioEngine::sharedEngine()->playEffect(
                                         // @geode-ignore(unknown-resource)
