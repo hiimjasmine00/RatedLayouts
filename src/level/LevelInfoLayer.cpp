@@ -325,12 +325,16 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   // include attempt data for analytics / verification
                   int attempts = 0;
                   int attemptTime = 0;
+                  int jumps = 0;
+                  int clicks = 0;
                   if (layerRef && layerRef->m_level) {
                         attempts = layerRef->m_level->m_attempts;
                         attemptTime = layerRef->m_level->m_attemptTime;
+                        jumps = layerRef->m_level->m_jumps;
+                        clicks = layerRef->m_level->m_clicks;
                   }
 
-                  log::debug("Submitting completion with attempts: {} time: {}", attempts, attemptTime);
+                  log::debug("Submitting completion with attempts: {} time: {} jumps: {} clicks: {}", attempts, attemptTime, jumps, clicks);
 
                   matjson::Value jsonBody;
                   jsonBody["accountId"] = accountId;
@@ -338,6 +342,8 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   jsonBody["levelId"] = levelId;
                   jsonBody["attempts"] = attempts;
                   jsonBody["attemptTime"] = attemptTime;
+                  jsonBody["jumps"] = jumps;
+                  jsonBody["clicks"] = clicks;
 
                   bool isPlat = false;
                   if (layerRef && layerRef->m_level) {

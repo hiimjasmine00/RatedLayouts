@@ -343,6 +343,22 @@ bool RLSearchLayer::init() {
       m_epicItem = epicItem;
       optionsMenu->addChild(epicItem);
 
+      // platformer toggle
+      auto platformerSpr = ButtonSprite::create("Platformer", "goldFont.fnt", "GJ_button_01.png");
+      auto platformerItem = CCMenuItemSpriteExtra::create(platformerSpr, this, menu_selector(RLSearchLayer::onPlatformerToggle));
+      platformerItem->setScale(1.0f);
+      platformerItem->setID("platformer-toggle");
+      m_platformerItem = platformerItem;
+      optionsMenu->addChild(platformerItem);
+
+      // username toggle
+      auto usernameSpr = ButtonSprite::create("Username", "goldFont.fnt", "GJ_button_01.png");
+      auto usernameItem = CCMenuItemSpriteExtra::create(usernameSpr, this, menu_selector(RLSearchLayer::onUsernameToggle));
+      usernameItem->setScale(1.0f);
+      usernameItem->setID("username-toggle");
+      m_usernameItem = usernameItem;
+      optionsMenu->addChild(usernameItem);
+
       // sorting toggle - descending
       auto oldestSpr = ButtonSprite::create("Oldest", "goldFont.fnt", "GJ_button_01.png");
       auto oldestItem = CCMenuItemSpriteExtra::create(oldestSpr, this, menu_selector(RLSearchLayer::onOldestToggle));
@@ -351,7 +367,6 @@ bool RLSearchLayer::init() {
       m_oldestItem = oldestItem;
       optionsMenu->addChild(oldestItem);
       optionsMenu->updateLayout();
-
 
       // info button yay
       auto infoMenu = CCMenu::create();
@@ -415,17 +430,19 @@ void RLSearchLayer::onSearchButton(CCObject* sender) {
       int awardedParam = m_awardedActive ? 1 : 0;
       int epicParam = m_epicActive ? 1 : 0;
       int oldestParam = m_oldestActive ? 1 : 0;
+      int usernameParam = m_usernameActive ? 1 : 0;
       std::string queryParam = "";
       if (m_searchInput) queryParam = m_searchInput->getString();
 
       auto req = web::WebRequest();
+      if (!queryParam.empty()) req.param("query", queryParam);
       if (!difficultyParam.empty()) req.param("difficulty", difficultyParam);
+      if (m_platformerActive) req.param("platformer", "1");
       req.param("featured", numToString(featuredParam));
       req.param("epic", numToString(epicParam));
-      if (!queryParam.empty()) req.param("query", queryParam);
-      // query params
       req.param("awarded", numToString(awardedParam));
       req.param("oldest", numToString(oldestParam));
+      req.param("user", numToString(usernameParam));
 
       req.get("https://gdrate.arcticwoof.xyz/search").listen([this](web::WebResponse* res) {
             if (!res || !res->ok()) {
@@ -548,6 +565,30 @@ void RLSearchLayer::onEpicToggle(CCObject* sender) {
       }
 }
 
+void RLSearchLayer::onPlatformerToggle(CCObject* sender) {
+      auto item = static_cast<CCMenuItemSpriteExtra*>(sender);
+      if (!item) return;
+      // toggle the platformer filter
+      m_platformerActive = !m_platformerActive;
+      auto normalNode = item->getNormalImage();
+      auto btn = static_cast<ButtonSprite*>(normalNode);
+      if (btn) {
+            btn->updateBGImage(m_platformerActive ? "GJ_button_02.png" : "GJ_button_01.png");
+      }
+}
+
+void RLSearchLayer::onUsernameToggle(CCObject* sender) {
+      auto item = static_cast<CCMenuItemSpriteExtra*>(sender);
+      if (!item) return;
+      // toggle the username filter
+      m_usernameActive = !m_usernameActive;
+      auto normalNode = item->getNormalImage();
+      auto btn = static_cast<ButtonSprite*>(normalNode);
+      if (btn) {
+            btn->updateBGImage(m_usernameActive ? "GJ_button_02.png" : "GJ_button_01.png");
+      }
+}
+
 void RLSearchLayer::onOldestToggle(CCObject* sender) {
       auto item = static_cast<CCMenuItemSpriteExtra*>(sender);
       if (!item) return;
@@ -559,7 +600,6 @@ void RLSearchLayer::onOldestToggle(CCObject* sender) {
             btn->updateBGImage(m_oldestActive ? "GJ_button_02.png" : "GJ_button_01.png");
       }
 }
-
 
 void RLSearchLayer::onDemonToggle(CCObject* sender) {
       auto toggler = static_cast<CCMenuItemToggler*>(sender);

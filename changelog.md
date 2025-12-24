@@ -1,9 +1,15 @@
 # v0.3.0-beta.1
+
 ### The Planets Platformer Update!
-- **Added Planet!** Collect Planets by completing Platformer Rated Layout Levels. Thanks to [Darkore](user:3595559) for the Planet texture design!
+
+- **Added Planets Collectables!** Collect Planets by completing Platformer Rated Layout Levels. Thanks to [Darkore](user:3595559) for the Planet texture design!
 - **Added Platformer Rated Layout Levels!** You can now play Platformer Rated Layout Levels and earn Planets Collectables!
 - **Added Platformer Rated Layouts Filter!** You can now filter levels by Platformer Rated Layouts in the Custom Search.
 - **Added Platformer Difficulty Stats!** You can now view your Platformer Rated Layout Levels stats in your profile page, including the number of levels you've beaten for each platformer difficulty. (You can view them by clicking the Planets icon in the profile page.)
+- **Added Username Filter!** You can now filter layout levels by creator's username in the Custom Search.
+- Made Blueprint Points clickable in the Profile Page to view the account's rated layout levels.
+- Layout Moderators and Admins can now suggest/rate platformer layout levels.
+- Internal Moderator and Admin UI tweaks.
 
 # v0.2.9-beta.1
 

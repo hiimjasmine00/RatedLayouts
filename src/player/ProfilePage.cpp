@@ -343,8 +343,17 @@ class $modify(RLProfilePage, ProfilePage) {
 
                         auto layoutIcon = CCSprite::create("RL_blueprintPoint01.png"_spr);
                         if (layoutIcon) {
-                              layoutIcon->setID("layout-points-icon");
-                              statsMenu->addChild(layoutIcon);
+                              layoutIcon->setScale(1.0f);
+                              auto layoutButton = CCMenuItemSpriteExtra::create(layoutIcon, pageRef, menu_selector(RLProfilePage::onLayoutPointsClicked));
+                              layoutButton->setID("layout-points-icon");
+                              if (auto statsMenuAsMenu = typeinfo_cast<CCMenu*>(statsMenu)) {
+                                    statsMenuAsMenu->addChild(layoutButton);
+                              } else {
+                                    auto btnMenu = CCMenu::create();
+                                    btnMenu->setPosition({0, 0});
+                                    btnMenu->addChild(layoutButton);
+                                    statsMenu->addChild(btnMenu);
+                              }
                         }
 
                         pageRef->m_fields->layoutPointsCount = layoutPointsCount;
@@ -389,6 +398,65 @@ class $modify(RLProfilePage, ProfilePage) {
             int accountId = m_fields->accountId;
             auto popup = RLDifficultyTotalPopup::create(accountId, RLDifficultyTotalPopup::Mode::Planets);
             if (popup) popup->show();
+      }
+
+      void onLayoutPointsClicked(CCObject* sender) {
+            int accountId = m_fields->accountId;
+            log::info("Fetching account levels for account ID: {}", accountId);
+
+            auto task = web::WebRequest().param("accountId", accountId).get("https://gdrate.arcticwoof.xyz/getAccountLevels");
+
+            Ref<RLProfilePage> pageRef = this;
+
+            task.listen([pageRef](web::WebResponse* res) {
+                  if (!pageRef) return;
+                  if (!res || !res->ok()) {
+                        Notification::create("Failed to fetch account levels", NotificationIcon::Error)->show();
+                        return;
+                  }
+
+                  auto jsonRes = res->json();
+                  if (!jsonRes) {
+                        Notification::create("Invalid server response", NotificationIcon::Error)->show();
+                        return;
+                  }
+
+                  auto json = jsonRes.unwrap();
+                  std::string levelIDs;
+                  bool first = true;
+                  if (json.contains("levels") && json["levels"].isArray()) {
+                        log::info("getAccountLevels: using 'levels' array");
+                        auto arr = json["levels"].asArray().unwrap();
+                        for (auto v : arr) {
+                              auto id = v.as<int>();
+                              if (!id) continue;
+                              if (!first) levelIDs += ",";
+                              levelIDs += numToString(id.unwrap());
+                              first = false;
+                        }
+                  } else if (json.contains("levelIds") && json["levelIds"].isArray()) {
+                        log::info("getAccountLevels: using 'levelIds' array");
+                        auto arr = json["levelIds"].asArray().unwrap();
+                        for (auto v : arr) {
+                              auto id = v.as<int>();
+                              if (!id) continue;
+                              if (!first) levelIDs += ",";
+                              levelIDs += numToString(id.unwrap());
+                              first = false;
+                        }
+                  }
+
+                  if (!levelIDs.empty()) {
+                        auto searchObject = GJSearchObject::create(SearchType::Type19, levelIDs);
+                        auto browserLayer = LevelBrowserLayer::create(searchObject);
+                        auto scene = CCScene::create();
+                        scene->addChild(browserLayer);
+                        auto transitionFade = CCTransitionFade::create(0.5f, scene);
+                        CCDirector::sharedDirector()->pushScene(transitionFade);
+                  } else {
+                        Notification::create("No levels found for this account", NotificationIcon::Warning)->show();
+                  }
+            });
       }
 
       // badge

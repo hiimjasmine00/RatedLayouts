@@ -77,16 +77,23 @@ class $modify(EndLevelLayer) {
                   // verification stuff
                   int attempts = 0;
                   int attemptTime = 0;
+                  int jumps = 0;
+                  int clicks = 0;
                   bool isPlat = false;
                   if (auto playLayer = PlayLayer::get()) {
                         if (playLayer->m_level) {
                               attempts = playLayer->m_level->m_attempts;
                               attemptTime = playLayer->m_level->m_attemptTime;
                               isPlat = playLayer->m_level->isPlatformer();
+                              jumps = playLayer->m_level->m_jumps;
+                              clicks = playLayer->m_level->m_clicks;
+                        }
+                        if (jumps == 0) {
+                              jumps = playLayer->m_jumps;
                         }
                   }
 
-                  log::debug("Submitting completion with attempts: {} time: {}", attempts, attemptTime);
+                  log::debug("Submitting completion with attempts: {} time: {} jumps: {}", attempts, attemptTime, jumps);
 
                   matjson::Value jsonBody;
                   jsonBody["accountId"] = accountId;
@@ -95,6 +102,8 @@ class $modify(EndLevelLayer) {
                   jsonBody["attempts"] = attempts;
                   jsonBody["attemptTime"] = attemptTime;
                   jsonBody["isPlat"] = isPlat;
+                  jsonBody["jumps"] = jumps;
+                  jsonBody["clicks"] = clicks;
 
                   auto submitReq = web::WebRequest();
                   submitReq.bodyJSON(jsonBody);
