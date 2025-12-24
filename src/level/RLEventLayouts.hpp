@@ -38,6 +38,21 @@ class RLEventLayouts : public geode::Popup<> {
             int featured = 0;
             time_t createdAt = 0;
             double secondsLeft = 0.0;
+
+            // Platformer (planet) container and fields
+            CCLayer* platContainer = nullptr;
+            GJDifficultySprite* platDiff = nullptr;
+            CCLabelBMFont* platLevelNameLabel = nullptr;
+            CCLabelBMFont* platCreatorLabel = nullptr;
+            CCMenuItem* platCreatorButton = nullptr;
+            CCMenuItem* platPlayButton = nullptr;
+            CCLabelBMFont* platDifficultyValueLabel = nullptr;
+            CCSprite* platStarIcon = nullptr;
+            CCSprite* platFeaturedIcon = nullptr;
+            int platAccountId = -1;
+            int platLevelId = -1;
+            int platFeatured = 0;
+            double platSecondsLeft = 0.0;
       };
       EventSection m_sections[3];
       EventType m_eventType = EventType::Daily;

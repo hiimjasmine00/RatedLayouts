@@ -1,6 +1,6 @@
 # Rated Layouts
 
-A <cl>community-run & standalone</c> <cg>rating System</c> that focus on rating specificly <cb>Layout Levels</c>!
+A <cl>community-run & standalone</c> <cg>rating system</c> that focus on rating specificly <cb>Layout Levels</c>!
 
 This mod adds a new rating system that focuses on layout design and gameplay rather than decoration and effects. <cy>Layout/Gameplay creators</c> now have a platform to get their levels rated and recognized.
 

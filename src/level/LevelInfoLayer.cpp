@@ -120,7 +120,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   }
 
                   auto modButtonSpr = CircleButtonSprite::create(
-                      buttonSprite, CircleBaseColor::Cyan, CircleBaseSize::Medium);
+                      buttonSprite, CircleBaseColor::Cyan, CircleBaseSize::Small);
 
                   auto modButtonItem = CCMenuItemSpriteExtra::create(
                       modButtonSpr, this, menu_selector(RLLevelInfoLayer::onModButton));
@@ -138,7 +138,7 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
                   }
 
                   auto modButtonSpr = CircleButtonSprite::create(
-                      buttonSprite, CircleBaseColor::Cyan, CircleBaseSize::Medium);
+                      buttonSprite, CircleBaseColor::Cyan, CircleBaseSize::Small);
 
                   auto modButtonItem = CCMenuItemSpriteExtra::create(
                       modButtonSpr, this, menu_selector(RLLevelInfoLayer::onAdminButton));
@@ -268,13 +268,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                         auto commSprite = shouldDisable ? CCSpriteGrayscale::create("RL_commVote01.png"_spr) : CCSprite::create("RL_commVote01.png"_spr);
                         if (commSprite) {
-                              auto commBtnSpr = CircleButtonSprite::create(commSprite, shouldDisable ? CircleBaseColor::Gray : CircleBaseColor::Green, CircleBaseSize::Medium);
+                              auto commBtnSpr = CircleButtonSprite::create(commSprite, shouldDisable ? CircleBaseColor::Gray : CircleBaseColor::Green, CircleBaseSize::Small);
                               auto commBtnItem = CCMenuItemSpriteExtra::create(commBtnSpr, layerRef, menu_selector(RLLevelInfoLayer::onCommunityVote));
                               commBtnItem->setID("rl-community-vote");
 
                               if (playMenuNode && typeinfo_cast<CCMenu*>(playMenuNode)) {
                                     auto playMenu = static_cast<CCMenu*>(playMenuNode);
-                                    commBtnItem->setPosition({-55.f, 20.f});
+                                    commBtnItem->setPosition({-160.f, 60.f});
                                     playMenu->addChild(commBtnItem);
                               } else {
                                     auto leftMenuNode = layerRef->getChildByID("left-side-menu");
@@ -706,13 +706,13 @@ class $modify(RLLevelInfoLayer, LevelInfoLayer) {
 
                         auto commSprite = shouldDisable ? CCSpriteGrayscale::create("RL_commVote01.png"_spr) : CCSprite::create("RL_commVote01.png"_spr);
                         if (commSprite) {
-                              auto commBtnSpr = CircleButtonSprite::create(commSprite, shouldDisable ? CircleBaseColor::Gray : CircleBaseColor::Green, CircleBaseSize::Medium);
+                              auto commBtnSpr = CircleButtonSprite::create(commSprite, shouldDisable ? CircleBaseColor::Gray : CircleBaseColor::Green, CircleBaseSize::Small);
                               auto commBtnItem = CCMenuItemSpriteExtra::create(commBtnSpr, layerRef, menu_selector(RLLevelInfoLayer::onCommunityVote));
                               commBtnItem->setID("rl-community-vote");
 
                               if (playMenuNode && typeinfo_cast<CCMenu*>(playMenuNode)) {
                                     auto playMenu = static_cast<CCMenu*>(playMenuNode);
-                                    commBtnItem->setPosition({-55.f, 20.f});
+                                    commBtnItem->setPosition({-160.f, 60.f});
                                     playMenu->addChild(commBtnItem);
 
                               } else {

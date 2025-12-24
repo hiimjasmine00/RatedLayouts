@@ -7,10 +7,13 @@
 - **Added Platformer Rated Layouts Filter!** You can now filter levels by Platformer Rated Layouts in the Custom Search.
 - **Added Platformer Difficulty Stats!** You can now view your Platformer Rated Layout Levels stats in your profile page, including the number of levels you've beaten for each platformer difficulty. (You can view them by clicking the Planets icon in the profile page.)
 - **Added Username Filter!** You can now filter layout levels by creator's username in the Custom Search.
+- **Added Platformer Layouts into the Event Layouts!** You can now find Platformer Rated Layout Levels in the Event Layouts section.
 - Made Blueprint Points clickable in the Profile Page to view the account's rated layout levels.
 - Layout Moderators and Admins can now suggest/rate platformer layout levels.
 - Internal Moderator and Admin UI tweaks.
 - Added additional checks on the "anti-cheat" for beating levels.
+- Fixed issue with the labels in the Event Layouts layer being misaligned.
+- Fixed issue where spamming the buttons makes the popup appear multiple times.
 
 # v0.2.9-beta.1
 

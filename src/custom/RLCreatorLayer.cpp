@@ -153,7 +153,7 @@ bool RLCreatorLayer::init() {
       // discord thingy
       auto discordIconSpr = CCSprite::createWithSpriteFrameName("gj_discordIcon_001.png");
       auto discordIconBtn = CCMenuItemSpriteExtra::create(discordIconSpr, this, menu_selector(RLCreatorLayer::onDiscordButton));
-      discordIconBtn->setPosition({infoButton->getPositionX(), infoButton->getPositionY() + 30});
+      discordIconBtn->setPosition({infoButton->getPositionX(), infoButton->getPositionY() + 40});
       infoMenu->addChild(discordIconBtn);
       this->addChild(infoMenu);
 
@@ -258,10 +258,13 @@ void RLCreatorLayer::onSecretDialogueButton(CCObject* sender) {
 }
 
 void RLCreatorLayer::onUnknownButton(CCObject* sender) {
+      // disable the button first to prevent spamming
+      auto menuItem = static_cast<CCMenuItemSpriteExtra*>(sender);
+      menuItem->setEnabled(false);
       // fetch dialogue from server and show it in a dialog
       web::WebRequest()
           .get("https://gdrate.arcticwoof.xyz/getDialogue")
-          .listen([this](web::WebResponse* res) {
+          .listen([this, menuItem](web::WebResponse* res) {
                 std::string text = "...";  // default text
                 if (res && res->ok()) {
                       auto jsonRes = res->json();
@@ -272,9 +275,11 @@ void RLCreatorLayer::onUnknownButton(CCObject* sender) {
                             }
                       } else {
                             log::error("Failed to parse getDialogue response");
+                            menuItem->setEnabled(true);
                       }
                 } else {
                       log::error("Failed to fetch dialogue");
+                      menuItem->setEnabled(true);
                 }
 
                 DialogObject* dialogObj = DialogObject::create(
@@ -289,6 +294,7 @@ void RLCreatorLayer::onUnknownButton(CCObject* sender) {
                       dialog->addToMainScene();
                       dialog->animateInRandomSide();
                 }
+                menuItem->setEnabled(true);
           });
 }
 

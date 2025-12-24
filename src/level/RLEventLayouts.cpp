@@ -63,24 +63,43 @@ bool RLEventLayouts::setup() {
       int idx = static_cast<int>(this->m_eventType);
       if (idx < 0 || idx >= 3) idx = 0;
 
-      // container layer for the chosen event
+      // container layer for the chosen event (main: classic layouts)
       auto container = CCLayer::create();
-      container->setContentSize({380.f, 116.f});
+      // event container size set to 380x84
+      container->setContentSize({380.f, 84.f});
       container->setAnchorPoint({0.5f, 0.5f});
 
       const char* bgTex = (idx == 0) ? "GJ_square03.png" : (idx == 1) ? "GJ_square05.png"
                                                                       : "GJ_square04.png";
       auto bgSprite = CCScale9Sprite::create(bgTex);
       if (bgSprite) {
-            bgSprite->setContentSize({380.f, 116.f});
+            bgSprite->setContentSize({380.f, 84.f});
             bgSprite->setAnchorPoint({0.5f, 0.5f});
             bgSprite->setPosition({container->getContentSize().width / 2.f, container->getContentSize().height / 2.f});
             container->addChild(bgSprite, -1);
       }
 
       m_sections[idx].container = container;
-      container->setPosition({22, 80});
+      const float containerTopY = 145.f;
+      container->setPosition({22, containerTopY});
       m_mainLayer->addChild(container);
+
+      // also create platformer (planet) container directly underneath the main container
+      auto platContainer = CCLayer::create();
+      platContainer->setContentSize({380.f, 84.f});
+      platContainer->setAnchorPoint({0.5f, 0.5f});
+      auto platBg = CCScale9Sprite::create(bgTex);
+      if (platBg) {
+            platBg->setContentSize({380.f, 84.f});
+            platBg->setAnchorPoint({0.5f, 0.5f});
+            platBg->setPosition({platContainer->getContentSize().width / 2.f, platContainer->getContentSize().height / 2.f});
+            platContainer->addChild(platBg, -1);
+      }
+      m_sections[idx].platContainer = platContainer;
+      // space of 6px between containers
+      float platY = containerTopY - (container->getContentSize().height / 2.f + platContainer->getContentSize().height / 2.f + 6.f);
+      platContainer->setPosition({22, platY});
+      m_mainLayer->addChild(platContainer);
 
       // header label
       auto headerText = labels[idx] + std::string(" Layout");
@@ -97,11 +116,12 @@ bool RLEventLayouts::setup() {
       m_mainLayer->addChild(headerLabel, 3);
 
       // level name (inside a fixed-width container to cap width at 280.f)
-      float nameContainerWidth = 200.f;
-      float nameContainerHeight = 20.f;
+      const float nameContainerWidth = 200.f;
+      const float nameContainerHeight = 18.f;
       auto nameContainer = CCLayer::create();
       nameContainer->setContentSize({nameContainerWidth, nameContainerHeight});
-      nameContainer->setPosition({70.f, 65.f});
+      const float nameY = container->getContentSize().height * 0.6f;
+      nameContainer->setPosition({70.f, nameY});
       nameContainer->setAnchorPoint({0.f, 0.5f});
       container->addChild(nameContainer);
       auto levelNameLabel = CCLabelBMFont::create("-", "bigFont.fnt");
@@ -111,84 +131,151 @@ bool RLEventLayouts::setup() {
       nameContainer->addChild(levelNameLabel);
       m_sections[idx].levelNameLabel = levelNameLabel;
 
-      // rewards label
+      // platformer name container
+      auto platNameContainer = CCLayer::create();
+      platNameContainer->setContentSize({nameContainerWidth, nameContainerHeight});
+      float platNameY = platContainer->getContentSize().height * 0.6f;
+      platNameContainer->setPosition({70.f, platNameY});
+      platNameContainer->setAnchorPoint({0.f, 0.5f});
+      platContainer->addChild(platNameContainer);
+      auto platLevelNameLabel = CCLabelBMFont::create("-", "bigFont.fnt");
+      platLevelNameLabel->setAnchorPoint({0.f, 0.5f});
+      platLevelNameLabel->setPosition({0.f, nameContainerHeight / 2.f});
+      platLevelNameLabel->setScale(0.8f);
+      platNameContainer->addChild(platLevelNameLabel);
+      m_sections[idx].platLevelNameLabel = platLevelNameLabel;
+
+      // rewards label (classic)
       auto rewardsLabel = CCLabelBMFont::create("Rewards: -", "bigFont.fnt");
       rewardsLabel->setAnchorPoint({0.5f, 0.5f});
-      float rewardsY = m_mainLayer->getContentSize().height - 60.f;
-      rewardsLabel->setPosition({m_mainLayer->getContentSize().width / 2.f - 10.f, rewardsY});
-      rewardsLabel->setScale(0.65f);
-      m_mainLayer->addChild(rewardsLabel, 3);
+      rewardsLabel->setScale(0.4f);
+      float initialCenterX = container->getContentSize().width / 2.f;
+      float initialLabelY = 12.f;
+      rewardsLabel->setPosition({initialCenterX, initialLabelY});
+      container->addChild(rewardsLabel, 2);
       m_sections[idx].difficultyValueLabel = rewardsLabel;
 
-      // reward star (to the right of the rewards label)
+      // rewards label (platformer)
+      auto platRewardsLabel = CCLabelBMFont::create("Rewards: -", "bigFont.fnt");
+      platRewardsLabel->setAnchorPoint({0.5f, 0.5f});
+      platRewardsLabel->setScale(0.4f);
+      float initialCenterXp = platContainer->getContentSize().width / 2.f;
+      float initialLabelYp = 12.f;
+      platRewardsLabel->setPosition({initialCenterXp, initialLabelYp});
+      platContainer->addChild(platRewardsLabel, 2);
+      m_sections[idx].platDifficultyValueLabel = platRewardsLabel;
+
+      // reward star (classic)
       auto rewardsStar = CCSprite::create("RL_starMed.png"_spr);
       if (rewardsStar) {
-            rewardsStar->setScale(0.9f);
-            m_mainLayer->addChild(rewardsStar, 3);
+            rewardsStar->setScale(0.6f);
+            // position to the right of centered label
+            float labelWidth = rewardsLabel->getContentSize().width * rewardsLabel->getScaleX();
+            float gap = 6.f;
+            float starX = initialCenterX + (labelWidth / 2.f) + gap + (rewardsStar->getContentSize().width * rewardsStar->getScaleX() / 2.f);
+            rewardsStar->setPosition({starX, initialLabelY});
+            container->addChild(rewardsStar, 2);
       }
       m_sections[idx].starIcon = rewardsStar;
 
-      // creator menu
+      // platform reward icon (planet)
+      auto platStar = CCSprite::create("RL_planetMed.png"_spr);
+      if (platStar) {
+            platStar->setScale(0.6f);
+            float labelWidthP = platRewardsLabel->getContentSize().width * platRewardsLabel->getScaleX();
+            float gapP = 6.f;
+            float starXp = initialCenterXp + (labelWidthP / 2.f) + gapP + (platStar->getContentSize().width * platStar->getScaleX() / 2.f);
+            platStar->setPosition({starXp, initialLabelYp});
+            platContainer->addChild(platStar, 2);
+      }
+      m_sections[idx].platStarIcon = platStar;
+
+      // creator menu (classic)
       auto creatorMenu = CCMenu::create();
       creatorMenu->setPosition({0, 0});
       creatorMenu->setContentSize(container->getContentSize());
       auto creatorLabel = CCLabelBMFont::create("By", "goldFont.fnt");
       creatorLabel->setAnchorPoint({0.f, 0.5f});
-      creatorLabel->setScale(0.8f);
+      creatorLabel->setScale(0.55f);
 
       auto creatorItem = CCMenuItemSpriteExtra::create(creatorLabel, this, menu_selector(RLEventLayouts::onCreatorClicked));
       creatorItem->setTag(0);
       creatorItem->setAnchorPoint({0.f, 0.5f});
       creatorItem->setContentSize({100.f, 12.f});
-      creatorItem->setPosition({70.f, 45.f});
+      // position creator for classic container
+      creatorItem->setPosition({70.f, 35.f});
       creatorLabel->setPosition({0.f, creatorItem->getContentSize().height / 2.f});
+      creatorLabel->setAnchorPoint({0.f, 0.5f});
       creatorMenu->addChild(creatorItem);
       container->addChild(creatorMenu, 2);
       m_sections[idx].creatorLabel = creatorLabel;
       m_sections[idx].creatorButton = creatorItem;
 
+      // creator menu (platformer)
+      auto platCreatorMenu = CCMenu::create();
+      platCreatorMenu->setPosition({0, 0});
+      platCreatorMenu->setContentSize(platContainer->getContentSize());
+      auto platCreatorLabel = CCLabelBMFont::create("By", "goldFont.fnt");
+      platCreatorLabel->setAnchorPoint({0.f, 0.5f});
+      platCreatorLabel->setScale(0.55f);
+      auto platCreatorItem = CCMenuItemSpriteExtra::create(platCreatorLabel, this, menu_selector(RLEventLayouts::onCreatorClicked));
+      platCreatorItem->setTag(0);
+      platCreatorItem->setAnchorPoint({0.f, 0.5f});
+      platCreatorItem->setContentSize({100.f, 12.f});
+      // position creator for platformer container
+      platCreatorItem->setPosition({70.f, 35.f});
+      platCreatorLabel->setPosition({0.f, platCreatorItem->getContentSize().height / 2.f});
+      platCreatorLabel->setAnchorPoint({0.f, 0.5f});
+      platCreatorMenu->addChild(platCreatorItem);
+      platContainer->addChild(platCreatorMenu, 2);
+      m_sections[idx].platCreatorLabel = platCreatorLabel;
+      m_sections[idx].platCreatorButton = platCreatorItem;
+
       // timer label
       std::vector<std::string> timerPrefixes = {"Next Daily in ", "Next Weekly in ", "Next Monthly in "};
       auto timerLabel = CCLabelBMFont::create((timerPrefixes[idx] + "--:--:--:--").c_str(), "bigFont.fnt");
-      timerLabel->setPosition({380.f / 2.f, -6.f});
-      timerLabel->setAnchorPoint({.5f, 1.f});
-      timerLabel->setScale(0.5f);
-      container->addChild(timerLabel);
+      timerLabel->setPosition({m_mainLayer->getContentSize().width / 2.f, 15.f});
+      timerLabel->setScale(0.4f);
+      m_mainLayer->addChild(timerLabel);
       m_sections[idx].timerLabel = timerLabel;
 
-      // difficulty sprite
+      // difficulty sprite (classic)
       auto diffSprite = GJDifficultySprite::create(0, GJDifficultyName::Short);
-      diffSprite->setPosition({40, 116.f / 2});
+      diffSprite->setPosition({40, container->getContentSize().height / 2});
       container->addChild(diffSprite);
       m_sections[idx].diff = diffSprite;
 
-      // ensure initial scales and positioning for the rewards label & star
-      if (m_sections[idx].difficultyValueLabel) {
-            m_sections[idx].difficultyValueLabel->setScale(0.65f);
-            m_sections[idx].difficultyValueLabel->setPosition({m_mainLayer->getContentSize().width / 2.f, m_mainLayer->getContentSize().height - 60.f});
-      }
-      if (m_sections[idx].starIcon && m_sections[idx].difficultyValueLabel) {
-            m_sections[idx].starIcon->setScale(0.9f);
-            float labelWidth = m_sections[idx].difficultyValueLabel->getContentSize().width * m_sections[idx].difficultyValueLabel->getScaleX();
-            float gap = 6.f;
-            float centerX = m_mainLayer->getContentSize().width / 2.f;
-            float starX = centerX + (labelWidth / 2.f) + gap + (m_sections[idx].starIcon->getContentSize().width * m_sections[idx].starIcon->getScaleX() / 2.f);
-            float starY = m_sections[idx].difficultyValueLabel->getPositionY();
-            m_sections[idx].starIcon->setPosition({starX, starY});
-      }
+      // difficulty sprite (platformer)
+      auto platDiffSprite = GJDifficultySprite::create(0, GJDifficultyName::Short);
+      platDiffSprite->setPosition({40, platContainer->getContentSize().height / 2});
+      platContainer->addChild(platDiffSprite);
+      m_sections[idx].platDiff = platDiffSprite;
 
-      // play button
+      // play button (classic)
       auto playMenu = CCMenu::create();
       playMenu->setPosition({0, 0});
       auto playSprite = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
       if (!playSprite) playSprite = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
       playSprite->setScale(0.65f);
       auto playButton = CCMenuItemSpriteExtra::create(playSprite, this, menu_selector(RLEventLayouts::onPlayEvent));
-      playButton->setPosition({330.f, 116.f / 2});
+      playButton->setPosition({330.f, container->getContentSize().height / 2});
       playButton->setAnchorPoint({0.5f, 0.5f});
       playMenu->addChild(playButton);
       container->addChild(playMenu, 2);
       m_sections[idx].playButton = playButton;
+
+      // play button (platformer)
+      auto platPlayMenu = CCMenu::create();
+      platPlayMenu->setPosition({0, 0});
+      auto platPlaySprite = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
+      if (!platPlaySprite) platPlaySprite = CCSprite::createWithSpriteFrameName("GJ_playBtn2_001.png");
+      platPlaySprite->setScale(0.65f);
+      auto platPlayButton = CCMenuItemSpriteExtra::create(platPlaySprite, this, menu_selector(RLEventLayouts::onPlayEvent));
+      platPlayButton->setPosition({330.f, platContainer->getContentSize().height / 2});
+      platPlayButton->setAnchorPoint({0.5f, 0.5f});
+      platPlayMenu->addChild(platPlayButton);
+      platContainer->addChild(platPlayMenu, 2);
+      m_sections[idx].platPlayButton = platPlayButton;
 
       // safe button
       auto safeMenu = CCMenu::create();
@@ -248,9 +335,9 @@ bool RLEventLayouts::setup() {
                         const float maxNameWidth = 200.f;
                         const float baseNameScale = 0.8f;
                         nameLabel->setScale(baseNameScale);
-                        float labelWidth = nameLabel->getContentSize().width * nameLabel->getScaleX();
+                        const float labelWidth = nameLabel->getContentSize().width * nameLabel->getScaleX();
                         if (labelWidth > maxNameWidth) {
-                              float newScale = maxNameWidth / nameLabel->getContentSize().width;
+                              const float newScale = maxNameWidth / nameLabel->getContentSize().width;
                               nameLabel->setScale(newScale);
                         }
                   }
@@ -259,32 +346,32 @@ bool RLEventLayouts::setup() {
                         creatorLabel->setAnchorPoint({0.f, 0.5f});
                   };
 
-                  if (sec->difficultyValueLabel) {
-                        // Remove any old star and create a fresh RL_starMed star to the right of the rewards text
+                  if (sec->difficultyValueLabel && sec->container) {
                         sec->difficultyValueLabel->setString(("Rewards: " + numToString(difficulty)).c_str());
-                        sec->difficultyValueLabel->setScale(0.65f);
-                        float centerX = selfRef->m_mainLayer->getContentSize().width / 2.f;
-                        float labelY = selfRef->m_mainLayer->getContentSize().height - 60.f;
+                        const float centerX = sec->container->getContentSize().width / 2.f;
+                        const float labelY = 12.f;
                         sec->difficultyValueLabel->setPosition({centerX, labelY});
 
-                        // recreate star to ensure correct sprite (RL_starMed)
+                        // recreate star to ensure correct sprite and positioning
                         if (sec->starIcon) {
                               sec->starIcon->removeFromParent();
                               sec->starIcon = nullptr;
                         }
                         auto newStar = CCSprite::create("RL_starMed.png"_spr);
                         if (newStar) {
-                              newStar->setScale(0.9f);
+                              newStar->setScale(0.6f);
                               float labelWidth = sec->difficultyValueLabel->getContentSize().width * sec->difficultyValueLabel->getScaleX();
-                              float gap = 6.f;
+                              float gap = 2.f;
                               float starX = centerX + (labelWidth / 2.f) + gap + (newStar->getContentSize().width * newStar->getScaleX() / 2.f);
                               newStar->setPosition({starX, labelY});
-                              selfRef->m_mainLayer->addChild(newStar, 3);
+                              sec->container->addChild(newStar, 2);
                               sec->starIcon = newStar;
                         }
                   }
+
+                  // update classic difficulty sprite and featured coin
                   if (sec->diff) {
-                        sec->diff->updateDifficultyFrame(getDifficulty(difficulty), GJDifficultyName::Long);
+                        sec->diff->updateDifficultyFrame(getDifficulty(difficulty), GJDifficultyName::Short);
                         if (featured == 1 || featured == 2) {
                               sec->featured = featured;
                               const char* coinSprite = (featured == 1) ? "rlfeaturedCoin.png"_spr : "rlepicFeaturedCoin.png"_spr;
@@ -307,12 +394,108 @@ bool RLEventLayouts::setup() {
                               }
                         }
                   }
+
+                  // platformer support: check for dailyPlat/weeklyPlat/monthlyPlat variant
+                  std::string platKey = key + "Plat";
+                  if (json.contains(platKey)) {
+                        auto pobj = json[platKey];
+                        auto platLevelVal = pobj["levelId"].as<int>();
+                        if (platLevelVal) {
+                              int platLevelId = platLevelVal.unwrap();
+                              sec->platLevelId = platLevelId;
+                              sec->platSecondsLeft = pobj["secondsLeft"].as<int>().unwrapOrDefault();
+
+                              auto platLevelName = pobj["levelName"].as<std::string>().unwrapOrDefault();
+                              auto platCreator = pobj["creator"].as<std::string>().unwrapOrDefault();
+                              auto platDifficulty = pobj["difficulty"].as<int>().unwrapOrDefault();
+                              auto platAccountId = pobj["accountId"].as<int>().unwrapOrDefault();
+                              auto platFeatured = pobj["featured"].as<int>().unwrapOrDefault();
+
+                              // update name label
+                              if (sec->platLevelNameLabel) {
+                                    sec->platLevelNameLabel->setString(platLevelName.c_str());
+                                    const float maxNameWidth = 200.f;
+                                    const float baseNameScale = 0.8f;
+                                    sec->platLevelNameLabel->setScale(baseNameScale);
+                                    float labelWidth = sec->platLevelNameLabel->getContentSize().width * sec->platLevelNameLabel->getScaleX();
+                                    if (labelWidth > maxNameWidth) {
+                                          float newScale = maxNameWidth / sec->platLevelNameLabel->getContentSize().width;
+                                          sec->platLevelNameLabel->setScale(newScale);
+                                    }
+                              }
+
+                              // update creator
+                              if (sec->platCreatorLabel) {
+                                    sec->platCreatorLabel->setString(("By " + platCreator).c_str());
+                                    sec->platCreatorLabel->setAnchorPoint({0.f, 0.5f});
+                              }
+
+                              // update rewards / planet icon
+                              if (sec->platDifficultyValueLabel && sec->platContainer) {
+                                    sec->platDifficultyValueLabel->setString(("Rewards: " + numToString(platDifficulty)).c_str());
+                                    const float centerXp = sec->platContainer->getContentSize().width / 2.f;
+                                    const float labelYp = 12.f;
+                                    sec->platDifficultyValueLabel->setPosition({centerXp, labelYp});
+
+                                    // recreate planet icon to ensure correct sprite and positioning
+                                    if (sec->platStarIcon) {
+                                          sec->platStarIcon->removeFromParent();
+                                          sec->platStarIcon = nullptr;
+                                    }
+                                    auto newPlat = CCSprite::create("RL_planetMed.png"_spr);
+                                    if (newPlat) {
+                                          newPlat->setScale(0.6f);
+                                          const float labelWidthP = sec->platDifficultyValueLabel->getContentSize().width * sec->platDifficultyValueLabel->getScaleX();
+                                          const float gapP = 2.f;
+                                          const float starXp = centerXp + (labelWidthP / 2.f) + gapP + (newPlat->getContentSize().width * newPlat->getScaleX() / 2.f);
+                                          newPlat->setPosition({starXp, labelYp});
+                                          sec->platContainer->addChild(newPlat, 2);
+                                          sec->platStarIcon = newPlat;
+                                    }
+                              }
+
+                              // update difficulty and featured for platformer
+                              if (sec->platDiff) {
+                                    sec->platDiff->updateDifficultyFrame(getDifficulty(platDifficulty), GJDifficultyName::Long);
+                                    if (platFeatured == 1 || platFeatured == 2) {
+                                          sec->platFeatured = platFeatured;
+                                          const char* coinSprite = (platFeatured == 1) ? "rlfeaturedCoin.png"_spr : "rlepicFeaturedCoin.png"_spr;
+                                          if (sec->platFeaturedIcon) {
+                                                sec->platFeaturedIcon->removeFromParent();
+                                                sec->platFeaturedIcon = nullptr;
+                                          }
+                                          auto coinIconP = CCSprite::create(coinSprite);
+                                          if (coinIconP) {
+                                                coinIconP->setPosition({sec->platDiff->getContentSize().width / 2.f, sec->platDiff->getContentSize().height / 2.f});
+                                                coinIconP->setZOrder(-1);
+                                                sec->platDiff->addChild(coinIconP);
+                                                sec->platFeaturedIcon = coinIconP;
+                                          }
+                                    } else {
+                                          if (sec->platFeaturedIcon) {
+                                                sec->platFeaturedIcon->removeFromParent();
+                                                sec->platFeaturedIcon = nullptr;
+                                                sec->platFeatured = 0;
+                                          }
+                                    }
+                              }
+
+                              sec->platAccountId = platAccountId;
+                              if (sec->platCreatorButton) {
+                                    sec->platCreatorButton->setTag(platAccountId);
+                                    sec->platCreatorButton->setPosition({70.f, 35.f});
+                                    sec->platCreatorButton->setContentSize({sec->platCreatorLabel->getContentSize().width * sec->platCreatorLabel->getScaleX(), 12.f});
+                              }
+                              if (sec->platPlayButton) {
+                                    sec->platPlayButton->setTag(platLevelId);
+                              }
+                        }
+                  }
+
                   sec->accountId = accountId;
                   if (sec->creatorButton) {
                         sec->creatorButton->setTag(accountId);
-                        sec->creatorButton->setPosition({70.f, 40.f});
                         sec->creatorButton->setContentSize({sec->creatorLabel->getContentSize().width * sec->creatorLabel->getScaleX(), 12.f});
-                        sec->creatorLabel->setScale(0.8f);
                   }
                   if (sec->playButton) {
                         sec->playButton->setTag(levelId);

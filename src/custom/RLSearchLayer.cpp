@@ -400,6 +400,9 @@ void RLSearchLayer::onInfoButton(CCObject* sender) {
 }
 
 void RLSearchLayer::onSearchButton(CCObject* sender) {
+      // disable button to prevent spamming
+      auto menuItem = static_cast<CCMenuItemSpriteExtra*>(sender);
+      menuItem->setEnabled(false);
       std::vector<int> selectedRatings;
       if (m_demonModeActive) {
             std::vector<int> demonRatings = {10, 15, 20, 25, 30};
@@ -444,14 +447,16 @@ void RLSearchLayer::onSearchButton(CCObject* sender) {
       req.param("oldest", numToString(oldestParam));
       req.param("user", numToString(usernameParam));
 
-      req.get("https://gdrate.arcticwoof.xyz/search").listen([this](web::WebResponse* res) {
+      req.get("https://gdrate.arcticwoof.xyz/search").listen([this, menuItem](web::WebResponse* res) {
             if (!res || !res->ok()) {
                   Notification::create("Search request failed", NotificationIcon::Error)->show();
+                  menuItem->setEnabled(true);
                   return;
             }
             auto jsonResult = res->json();
             if (!jsonResult) {
                   Notification::create("Failed to parse search response", NotificationIcon::Error)->show();
+                  menuItem->setEnabled(true);
                   return;
             }
             auto json = jsonResult.unwrap();
@@ -468,6 +473,7 @@ void RLSearchLayer::onSearchButton(CCObject* sender) {
                   }
             }
             if (!levelIDs.empty()) {
+                  menuItem->setEnabled(true);
                   auto searchObject = GJSearchObject::create(SearchType::Type19, levelIDs);
                   auto browserLayer = LevelBrowserLayer::create(searchObject);
                   auto scene = CCScene::create();
@@ -476,6 +482,7 @@ void RLSearchLayer::onSearchButton(CCObject* sender) {
                   CCDirector::sharedDirector()->pushScene(transitionFade);
             } else {
                   Notification::create("No results returned", NotificationIcon::Warning)->show();
+                  menuItem->setEnabled(true);
             }
       });
 }
